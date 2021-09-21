@@ -6,6 +6,10 @@ set -e
 
 wget https://downloads.sourceforge.net/project/freetype/freetype2/$BUILD_FREETYPE_VERSION/freetype-$BUILD_FREETYPE_VERSION.tar.gz
 tar xf freetype-$BUILD_FREETYPE_VERSION.tar.gz
+
 wget https://github.com/apple/cups/releases/download/v2.2.4/cups-2.2.4-source.tar.gz
 tar xf cups-2.2.4-source.tar.gz
 rm cups-2.2.4-source.tar.gz freetype-$BUILD_FREETYPE_VERSION.tar.gz
+
+wget https://github.com/libffi/libffi/releases/download/v3.4.2/libffi-3.4.2.tar.gz
+tar xvf libffi-3.4.2.tar.gz

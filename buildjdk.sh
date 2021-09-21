@@ -41,14 +41,6 @@ if [ "$BUILD_IOS" != "1" ]; then
   ar cru dummy_libs/libpthread.a
   ar cru dummy_libs/libthread_db.a
 else
-  wget https://github.com/libffi/libffi/releases/download/v3.4.2/libffi-3.4.2.tar.gz
-  tar xvf libffi-3.4.2.tar.gz
-  cd libffi-3.4.2
-  python generate-darwin-source-and-headers.py --only-ios
-  xcodebuild -arch arm64
-  cd build_iphoneos-arm64
-  make prefix=`pwd` install
-
   ln -s -f /opt/X11/include/X11 $ANDROID_INCLUDE/
   platform_args="--with-toolchain-type=clang"
   # --disable-precompiled-headers
@@ -62,6 +54,8 @@ fi
 
 # fix building libjawt
 ln -s -f $CUPS_DIR/cups $ANDROID_INCLUDE/
+
+LIBFFI_DIR=libffi-3.4.2/build_iphoneos-arm64
 
 cd openjdk
 #rm -rf build
@@ -83,6 +77,8 @@ bash ./configure \
     --with-fontconfig-include=$ANDROID_INCLUDE \
     --with-freetype-lib=$FREETYPE_DIR/lib \
     --with-freetype-include=$FREETYPE_DIR/include/freetype2 \
+    --with-libffi-include=$LIBFFI_DIR/include \
+    --with-libffi-lib=$LIBFFI_DIR/lib \
     $AUTOCONF_x11arg $AUTOCONF_EXTRA_ARGS \
     --x-libraries=/usr/lib \
         $platform_args || \

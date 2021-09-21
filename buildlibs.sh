@@ -6,10 +6,16 @@ cd freetype-$BUILD_FREETYPE_VERSION
 echo "Building Freetype"
 
 if [ "$BUILD_IOS" == "1" ]; then
-  LDFLAGS=-"arch arm64 -isysroot $thesysroot -miphoneos-version-min=12.0"
-
   export CC=$thecc
   export CXX=$thecxx
+  LDFLAGS=-"arch arm64 -isysroot $thesysroot -miphoneos-version-min=12.0"
+
+  cd libffi-3.4.2
+  python generate-darwin-source-and-headers.py --only-ios
+  xcodebuild -arch arm64
+  cd build_iphoneos-arm64
+  make prefix=`pwd` install
+
   ./configure \
     --host=$TARGET \
     --prefix=${PWD}/build_android-${TARGET_SHORT} \
