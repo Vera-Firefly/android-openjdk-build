@@ -41,6 +41,13 @@ if [ "$BUILD_IOS" != "1" ]; then
   ar cru dummy_libs/libpthread.a
   ar cru dummy_libs/libthread_db.a
 else
+  wget https://github.com/libffi/libffi/releases/download/v3.4.2/libffi-3.4.2.tar.gz
+  tar xvf libffi-3.4.2.tar.gz
+  cd libffi-3.4.2
+  xcodebuild -arch arm64
+  cd build_iphoneos-arm64
+  make prefix=`pwd` install
+
   ln -s -f /opt/X11/include/X11 $ANDROID_INCLUDE/
   platform_args="--with-toolchain-type=clang"
   # --disable-precompiled-headers
