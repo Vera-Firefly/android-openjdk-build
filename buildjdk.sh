@@ -44,6 +44,7 @@ else
   wget https://github.com/libffi/libffi/releases/download/v3.4.2/libffi-3.4.2.tar.gz
   tar xvf libffi-3.4.2.tar.gz
   cd libffi-3.4.2
+  python generate-darwin-source-and-headers.py --only-ios
   xcodebuild -arch arm64
   cd build_iphoneos-arm64
   make prefix=`pwd` install
