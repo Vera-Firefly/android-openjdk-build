@@ -60,6 +60,9 @@ LIBFFI_DIR=libffi-3.4.2/build_iphoneos-arm64
 cd openjdk
 #rm -rf build
 
+export LIBFFI_CFLAGS="-I$LIBFFI_DIR/include"
+export LIBFFI_LIBS="-L$LIBFFI_DIR/lib"
+
 #   --with-extra-cxxflags="$CXXFLAGS -Dchar16_t=uint16_t -Dchar32_t=uint32_t" \
 #   --with-extra-cflags="$CPPFLAGS" \
 #   --with-sysroot="$(xcrun --sdk iphoneos --show-sdk-path)" \
@@ -77,7 +80,6 @@ bash ./configure \
     --with-fontconfig-include=$ANDROID_INCLUDE \
     --with-freetype-lib=$FREETYPE_DIR/lib \
     --with-freetype-include=$FREETYPE_DIR/include/freetype2 \
-    --with-libffi=$LIBFFI_DIR \
     $AUTOCONF_x11arg $AUTOCONF_EXTRA_ARGS \
     --x-libraries=/usr/lib \
         $platform_args || \
