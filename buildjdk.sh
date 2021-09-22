@@ -77,8 +77,7 @@ bash ./configure \
     --with-fontconfig-include=$ANDROID_INCLUDE \
     --with-freetype-lib=$FREETYPE_DIR/lib \
     --with-freetype-include=$FREETYPE_DIR/include/freetype2 \
-    --with-libffi-include=$LIBFFI_DIR/include \
-    --with-libffi-lib=$LIBFFI_DIR/lib \
+    --with-libffi=$LIBFFI_DIR \
     $AUTOCONF_x11arg $AUTOCONF_EXTRA_ARGS \
     --x-libraries=/usr/lib \
         $platform_args || \
