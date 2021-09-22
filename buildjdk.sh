@@ -33,7 +33,7 @@ if [ "$BUILD_IOS" != "1" ]; then
   ln -s -f /usr/include/fontconfig $ANDROID_INCLUDE/
   AUTOCONF_x11arg="--x-includes=$ANDROID_INCLUDE/X11"
 
-  export LDFLAGS+=" -L`pwd`/dummy_libs"
+  export LDFLAGS+=" -L`pwd`/dummy_libs -O3"
 
   sudo apt -y install systemtap-sdt-dev gcc-multilib g++-multilib libxtst-dev libasound2-dev libelf-dev libfontconfig1-dev libx11-dev
 # Create dummy libraries so we won't have to remove them in OpenJDK makefiles
@@ -45,7 +45,7 @@ else
   platform_args="--with-toolchain-type=clang"
   # --disable-precompiled-headers
   AUTOCONF_x11arg="--with-x=/opt/X11/include/X11 --prefix=/usr/lib"
-  sameflags="-arch arm64 -isysroot $thesysroot -miphoneos-version-min=12.0 -DHEADLESS=1 -I$PWD/ios-missing-include -Wno-implicit-function-declaration"
+  sameflags="-O3 -arch arm64 -isysroot $thesysroot -miphoneos-version-min=12.0 -DHEADLESS=1 -I$PWD/ios-missing-include -Wno-implicit-function-declaration"
   export CFLAGS+=" $sameflags"
   export CXXFLAGS="$sameflags"
 
