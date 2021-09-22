@@ -13,7 +13,7 @@ if [ "$BUILD_IOS" == "1" ]; then
   xcodebuild -arch arm64
   cd build_iphoneos-arm64
   make prefix=`pwd` install
-  cd ..
+  cd ../..
 
   echo "Building Freetype"
   cd freetype-$BUILD_FREETYPE_VERSION
