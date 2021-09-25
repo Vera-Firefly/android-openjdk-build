@@ -26,6 +26,9 @@ find jreout -name "*.diz" -delete
 find jdkout -name "*.diz" -exec mv {} dizout/ \;
 
 if [ "$BUILD_IOS" == "1" ]; then
+  cp /usr/local/lib/libffi.8.dylib jdkout/jre/lib/
+  cp /usr/local/lib/libffi.8.dylib jreout/lib/
+
   install_name_tool -id @rpath/libfreetype.dylib jdkout/jre/lib/libfreetype.dylib
   install_name_tool -id @rpath/libfreetype.dylib jreout/lib/libfreetype.dylib
   install_name_tool -change build_android-arm64/lib/libfreetype.dylib @rpath/libfreetype.dylib jdkout/jre/lib/libfontmanager.dylib
