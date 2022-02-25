@@ -64,7 +64,7 @@ export JVM_VARIANTS=[client/server] # default: client (aarch32), server (other a
 
 # Setup NDK, run once (Android only)
 ./extractndk.sh
-./maketoolchain.sh
+./maketoolchain.sh 
 
 # Get CUPS, Freetype and build Freetype
 ./getlibs.sh
