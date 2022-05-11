@@ -7,7 +7,7 @@ export CUPS_DIR=$PWD/cups-2.2.4
 export CFLAGS+=" -DLE_STANDALONE -DANDROID" # -I$FREETYPE_DIR -I$CUPS_DI
 if [ "$TARGET_JDK" == "aarch32" ]
 then
-  export CFLAGS+=" -O2 -mthumb -D__thumb__"
+  export CFLAGS+=" -O2"
 else
   export CFLAGS+=" -O3"
 fi
