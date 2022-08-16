@@ -9,7 +9,7 @@ git clone https://github.com/termux/termux-elf-cleaner || true
 cd termux-elf-cleaner
 autoreconf --install
 bash configure
-make CFLAGS=__ANDROID_API__=24
+make CFLAGS=-D__ANDROID_API__=24
 cd ..
 
 findexec() { find $1 -type f -name "*" -not -name "*.o" -exec sh -c '
