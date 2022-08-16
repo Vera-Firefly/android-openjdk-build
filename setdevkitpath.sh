@@ -35,6 +35,7 @@ if [ "$BUILD_IOS" == "1" ]; then
   export thehostcxx=$PWD/macos-host-cc
   export CC=$PWD/ios-arm64-clang
   export CXX=$PWD/ios-arm64-clang++
+  export CXXCPP="$CXX -E"
   export LD=$(xcrun -find -sdk iphoneos ld)
 
   export HOTSPOT_DISABLE_DTRACE_PROBES=1

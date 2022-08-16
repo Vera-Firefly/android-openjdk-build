@@ -4,8 +4,8 @@ set -e
 
 export FREETYPE_DIR=$PWD/freetype-$BUILD_FREETYPE_VERSION/build_android-$TARGET_SHORT
 export CUPS_DIR=$PWD/cups-2.2.4
-export CFLAGS+=" -DLE_STANDALONE -DANDROID" # -I$FREETYPE_DIR -I$CUPS_DI
-if [ "$TARGET_JDK" == "arm" ]
+export CFLAGS+=" -DLE_STANDALONE" # -I$FREETYPE_DIR -I$CUPS_DI
+if [ "$TARGET_JDK" == "arm" ] # || [ "$BUILD_IOS" == "1" ]
 then
   export CFLAGS+=" -O3 -D__thumb__"
 else
@@ -28,8 +28,13 @@ if [ "$BUILD_IOS" != "1" ]; then
   chmod +x android-wrapped-clang++
   ln -s -f /usr/include/X11 $ANDROID_INCLUDE/
   ln -s -f /usr/include/fontconfig $ANDROID_INCLUDE/
+  platform_args=--with-toolchain-type=gcc
+    --with-freetype-include=$FREETYPE_DIR/include/freetype2 \
+    --with-freetype-lib=$FREETYPE_DIR/lib \
+    "
   AUTOCONF_x11arg="--x-includes=$ANDROID_INCLUDE/X11"
 
+  export CFLAGS+=" -DANDROID"
   export LDFLAGS+=" -L$PWD/dummy_libs"
 
   sudo apt -y install systemtap-sdt-dev libxtst-dev libasound2-dev libelf-dev libfontconfig1-dev libx11-dev libxext-dev libxrandr-dev libxrender-dev libxtst-dev libxt-dev
@@ -41,13 +46,17 @@ if [ "$BUILD_IOS" != "1" ]; then
   ar cru dummy_libs/libthread_db.a
 else
   ln -s -f /opt/X11/include/X11 $ANDROID_INCLUDE/
-  platform_args=--with-toolchain-type=clang
-  AUTOCONF_x11arg="--with-x=/opt/X11/include/X11 --disable-precompiled-headers --prefix=/usr/lib"
-  sameflags="-arch arm64 -isysroot $thesysroot -miphoneos-version-min=12.0 -DHEADLESS=1 -I$PWD/ios-missing-include -Wno-implicit-function-declaration"
+  platform_args="--with-toolchain-type=clang --with-sysroot=$(xcrun --sdk iphoneos --show-sdk-path) \
+    --with-boot-jdk=$(/usr/libexec/java_home -v 17) \
+    --with-freetype=bundled \
+    "
+  AUTOCONF_x11arg="--with-x=/opt/X11/include/X11 --prefix=/usr/lib"
+  sameflags="-arch arm64 -DHEADLESS=1 -I$PWD/ios-missing-include -Wno-implicit-function-declaration -DTARGET_OS_OSX"
   export CFLAGS+=" $sameflags"
-  export CXXFLAGS="$sameflags"
+  export LDFLAGS+="-arch arm64"
+  export BUILD_SYSROOT_CFLAGS="-isysroot ${themacsysroot}"
 
-  HOMEBREW_NO_AUTO_UPDATE=1 brew install ldid xquartz
+  HOMEBREW_NO_AUTO_UPDATE=1 brew install ldid xquartz autoconf
 fi
 
 # fix building libjawt
@@ -58,7 +67,6 @@ cd openjdk
 
 #   --with-extra-cxxflags="$CXXFLAGS -Dchar16_t=uint16_t -Dchar32_t=uint32_t" \
 #   --with-extra-cflags="$CPPFLAGS" \
-#   --with-sysroot="$(xcrun --sdk iphoneos --show-sdk-path)" \
 
 bash ./configure \
     --openjdk-target=$TARGET \
@@ -69,15 +77,12 @@ bash ./configure \
     --disable-warnings-as-errors \
     --enable-option-checking=fatal \
     --enable-headless-only=yes \
-    --with-toolchain-type=gcc \
     --with-jvm-variants=$JVM_VARIANTS \
     --with-jvm-features=-dtrace,-zero,-vm-structs,-epsilongc \
     --with-cups-include=$CUPS_DIR \
     --with-devkit=$TOOLCHAIN \
     --with-debug-level=$JDK_DEBUG_LEVEL \
     --with-fontconfig-include=$ANDROID_INCLUDE \
-    --with-freetype-lib=$FREETYPE_DIR/lib \
-    --with-freetype-include=$FREETYPE_DIR/include/freetype2 \
     $AUTOCONF_x11arg $AUTOCONF_EXTRA_ARGS \
     --x-libraries=/usr/lib \
         $platform_args || \

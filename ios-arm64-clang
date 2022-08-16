@@ -1,1 +1,2 @@
-exec $thecc -arch arm64 -isysroot $thesysroot "$@"
+#echo $@
+exec $thecc -arch arm64 -isysroot $thesysroot -miphoneos-version-min=12.0 "$@"
