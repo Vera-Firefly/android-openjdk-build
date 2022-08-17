@@ -38,19 +38,16 @@ jobs:
 
   build_iosport:
     name: "Build for iOS aarch64"
-    runs-on: macOS-latest
+    runs-on: MacStadium
     continue-on-error: true
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
 
-    - name: set up JDK 1.17
-      uses: actions/setup-java@v1
-      with:
-        java-version: 1.17
-
     - name: Build with CI build script
       run: |
+        export PATH=/opt/homebrew/bin:$PATH
+        export JAVA_HOME=$(/usr/libexec/java_home -v 17)
         export BUILD_IOS=1
         bash "ci_build_arch_aarch64.sh"
 

@@ -46,7 +46,11 @@ if [ "$BUILD_IOS" != "1" ]; then
   ar cru dummy_libs/libthread_db.a
 else
   ln -s -f /opt/X11/include/X11 $ANDROID_INCLUDE/
-  ln -s -f /usr/local/include/fontconfig $ANDROID_INCLUDE/
+  if [ "$(uname -p)" == "arm" ]; then
+    ln -s -f /opt/homebrew/include/fontconfig $ANDROID_INCLUDE/
+  else
+    ln -s -f /usr/local/include/fontconfig $ANDROID_INCLUDE/
+  fi
   platform_args="--with-toolchain-type=clang --with-sysroot=$(xcrun --sdk iphoneos --show-sdk-path) \
     --with-boot-jdk=$(/usr/libexec/java_home -v 17) \
     --with-freetype=bundled \
