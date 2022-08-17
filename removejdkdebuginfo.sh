@@ -38,7 +38,7 @@ jlink \
 find jdkout -name "*.debuginfo" | xargs -- rm
 find jreout -name "*.debuginfo" -exec mv {}   dizout/ \;
 
-find jdkout -name "*.dSYM"  | xargs -- rm
+find jdkout -name "*.dSYM"  | xargs -- rm -rf
 
 #TODO: fix .dSYM stuff
 
