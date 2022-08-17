@@ -46,6 +46,7 @@ if [ "$BUILD_IOS" != "1" ]; then
   ar cru dummy_libs/libthread_db.a
 else
   ln -s -f /opt/X11/include/X11 $ANDROID_INCLUDE/
+  ln -s -f /usr/local/include/fontconfig $ANDROID_INCLUDE/
   platform_args="--with-toolchain-type=clang --with-sysroot=$(xcrun --sdk iphoneos --show-sdk-path) \
     --with-boot-jdk=$(/usr/libexec/java_home -v 17) \
     --with-freetype=bundled \
@@ -56,7 +57,7 @@ else
   export LDFLAGS+="-arch arm64"
   export BUILD_SYSROOT_CFLAGS="-isysroot ${themacsysroot}"
 
-  HOMEBREW_NO_AUTO_UPDATE=1 brew install ldid xquartz autoconf
+  HOMEBREW_NO_AUTO_UPDATE=1 brew install fontconfig ldid xquartz autoconf
 fi
 
 # fix building libjawt
