@@ -8,7 +8,9 @@ imagespath=openjdk/build/${JVM_PLATFORM}-${TARGET_JDK}-${JVM_VARIANTS}-${JDK_DEB
 rm -rf dizout jreout jdkout dSYM-temp
 mkdir -p dizout dSYM-temp/{lib,bin}
 
-#cp freetype-$BUILD_FREETYPE_VERSION/build_android-$TARGET_SHORT/lib/libfreetype.so $imagespath/jdk/lib/
+if [ "$BUILD_IOS" != "1" ]; then
+   cp freetype-$BUILD_FREETYPE_VERSION/build_android-$TARGET_SHORT/lib/libfreetype.so $imagespath/jdk/lib/
+fi
 
 cp -r $imagespath/jdk jdkout
 
