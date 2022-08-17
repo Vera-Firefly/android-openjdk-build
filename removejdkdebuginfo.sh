@@ -15,7 +15,9 @@ if [ "$BUILD_IOS" == "1_skipped_for_now" ]; then
   done
 fi
 
-cp freetype-$BUILD_FREETYPE_VERSION/build_android-$TARGET_SHORT/lib/libfreetype.so $imagespath/jdk/lib/
+if [ "$BUILD_IOS" != "1" ]; then
+  cp freetype-$BUILD_FREETYPE_VERSION/build_android-$TARGET_SHORT/lib/libfreetype.so $imagespath/jdk/lib/
+fi
 
 cp -r $imagespath/jdk jdkout
 
