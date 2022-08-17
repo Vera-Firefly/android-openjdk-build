@@ -8,7 +8,7 @@ imagespath=openjdk/build/${JVM_PLATFORM}-${TARGET_JDK}-${JVM_VARIANTS}-${JDK_DEB
 rm -rf dizout jreout jdkout
 mkdir dizout
 
-if [ "$BUILD_IOS" == "1" ]; then
+if [ "$BUILD_IOS" == "1_skipped_for_now" ]; then
   find $imagespath -name "*.dylib" -exec ldid -Sios-sign-entitlements.xml {} \;
   for bindir in $(find $imagespath -name "bin"); do
     ldid -Sios-sign-entitlements.xml ${bindir}/*
