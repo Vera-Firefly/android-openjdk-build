@@ -5,19 +5,10 @@ set -e
 
 imagespath=openjdk/build/${JVM_PLATFORM}-${TARGET_JDK}-${JVM_VARIANTS}-${JDK_DEBUG_LEVEL}/images
 
-rm -rf dizout jreout jdkout
-mkdir dizout
+rm -rf dizout jreout jdkout dSYM-temp
+mkdir -p dizout dSYM-temp/{lib,bin}
 
-if [ "$BUILD_IOS" == "1_skipped_for_now" ]; then
-  find $imagespath -name "*.dylib" -exec ldid -Sios-sign-entitlements.xml {} \;
-  for bindir in $(find $imagespath -name "bin"); do
-    ldid -Sios-sign-entitlements.xml ${bindir}/*
-  done
-fi
-
-if [ "$BUILD_IOS" != "1" ]; then
-  cp freetype-$BUILD_FREETYPE_VERSION/build_android-$TARGET_SHORT/lib/libfreetype.so $imagespath/jdk/lib/
-fi
+#cp freetype-$BUILD_FREETYPE_VERSION/build_android-$TARGET_SHORT/lib/libfreetype.so $imagespath/jdk/lib/
 
 cp -r $imagespath/jdk jdkout
 
@@ -44,3 +35,23 @@ jlink \
 
 find jdkout -name "*.debuginfo" | xargs -- rm
 find jreout -name "*.debuginfo" -exec mv {}   dizout/ \;
+
+find jdkout -name "*.dSYM"  | xargs -- rm
+
+#TODO: fix .dSYM stuff
+
+if [ "$BUILD_IOS" == "1" ]; then
+  install_name_tool -id @rpath/libfreetype.dylib jdkout/lib/libfreetype.dylib
+  install_name_tool -id @rpath/libfreetype.dylib jreout/lib/libfreetype.dylib
+  install_name_tool -change build_android-arm64/lib/libfreetype.dylib @rpath/libfreetype.dylib jdkout/lib/libfontmanager.dylib
+  install_name_tool -change build_android-arm64/lib/libfreetype.dylib @rpath/libfreetype.dylib jreout/lib/libfontmanager.dylib
+
+  JAVA_HOME=/usr/lib/jvm/java-17-openjdk
+  for dafile in $(find j*out -name "*.dylib"); do
+    install_name_tool -add_rpath $JAVA_HOME/lib/server \
+      -add_rpath $JAVA_HOME/lib -add_rpath $JAVA_HOME/jre/lib $dafile
+    ldid -Sios-sign-entitlements.xml $dafile
+  done
+  ldid -Sios-sign-entitlements.xml jreout/bin/*
+  ldid -Sios-sign-entitlements.xml jdkout/bin/*
+fi
