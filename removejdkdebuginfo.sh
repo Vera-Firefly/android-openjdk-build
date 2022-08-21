@@ -31,6 +31,10 @@ jlink \
 --release-info=jdkout/release \
 --compress=0
 
+if [ "$BUILD_IOS" != "1" ]; then
+   cp freetype-$BUILD_FREETYPE_VERSION/build_android-$TARGET_SHORT/lib/libfreetype.so jreout/lib/
+fi
+
 # mv jreout/lib/${TARGET_JDK}/libfontmanager.diz jreout/lib/${TARGET_JDK}/libfontmanager.diz.keep
 # find jreout -name "*.debuginfo" | xargs -- rm
 # mv jreout/lib/${TARGET_JDK}/libfontmanager.diz.keep jreout/lib/${TARGET_JDK}/libfontmanager.diz
