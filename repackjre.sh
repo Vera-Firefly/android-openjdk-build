@@ -1,3 +1,6 @@
+#!/bin/bash
+set -e
+
 ## Usage:
 ## ./repackjre.sh [path_to_normal_jre_tarballs] [output_path]
 
@@ -34,7 +37,7 @@ makearch () {
   
   mv release "$work1"/release
   
-  tar cJf bin-$2.tar.xz -C "$work1" . > /dev/null 2>&1;
+  XZ_OPT="-9e --threads=0" tar cJf bin-$2.tar.xz -C "$work1" . > /dev/null;
   mv bin-$2.tar.xz "$out"/;
   rm -rf "$work"/*;
   rm -rf "$work1"/*;
@@ -44,7 +47,7 @@ makearch () {
 makeuni () {
   echo "Making universal...";
   cd "$work";
-  tar xf -9e --threads=0 $(find "$in" -name jre17-arm64-*release.tar.xz) > /dev/null 2>&1;
+  tar xf $(find "$in" -name jre17-arm64-*release.tar.xz) > /dev/null 2>&1;
   
   rm -rf bin;
   rm -rf lib/server;
@@ -52,7 +55,7 @@ makeuni () {
   find ./ -name '*.so' -execdir rm {} \; # Remove arch specific shared objects
   rm release
   
-  tar cJf universal.tar.xz * > /dev/null 2>&1;
+  XZ_OPT="-9e --threads=0" tar cJf universal.tar.xz * > /dev/null;
   mv universal.tar.xz "$out"/;
   rm -rf "$work"/*;
  }
