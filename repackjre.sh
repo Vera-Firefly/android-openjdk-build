@@ -37,7 +37,7 @@ makearch () {
   
   mv release "$work1"/release
   
-  XZ_OPT="-9e --threads=0" tar cJf bin-$2.tar.xz -C "$work1" . > /dev/null;
+  XZ_OPT="-6 --threads=0" tar cJf bin-$2.tar.xz -C "$work1" . > /dev/null;
   mv bin-$2.tar.xz "$out"/;
   rm -rf "$work"/*;
   rm -rf "$work1"/*;
@@ -55,7 +55,7 @@ makeuni () {
   find ./ -name '*.so' -execdir rm {} \; # Remove arch specific shared objects
   rm release
   
-  XZ_OPT="-9e --threads=0" tar cJf universal.tar.xz * > /dev/null;
+  XZ_OPT="-6 --threads=0" tar cJf universal.tar.xz * > /dev/null;
   mv universal.tar.xz "$out"/;
   rm -rf "$work"/*;
  }
