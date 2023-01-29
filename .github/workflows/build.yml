@@ -46,7 +46,7 @@ jobs:
 
     - name: Build with CI build script
       run: |
-        export PATH=/opt/homebrew/bin:$PATH
+        export PATH=/opt/procursus/bin:/opt/homebrew/bin:$PATH
         export JAVA_HOME=$(/usr/libexec/java_home -v 17)
         export BUILD_IOS=1
         bash "ci_build_arch_aarch64.sh"
