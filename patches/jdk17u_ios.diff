@@ -396,7 +396,7 @@ index 93acd8f87..571a36f01 100644
 --- a/make/modules/java.security.jgss/Lib.gmk
 +++ b/make/modules/java.security.jgss/Lib.gmk
 @@ -70,7 +70,8 @@ ifneq ($(BUILD_CRYPTO), false)
-     TARGETS += $(BUILD_LIBSSPI_BRIDGE)
+     TARGETS += $(BUILD_LIBW2K_LSA_AUTH)
    endif
  
 -  ifeq ($(call isTargetOs, macosx), true)
