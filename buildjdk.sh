@@ -70,6 +70,15 @@ fi
 ln -s -f $CUPS_DIR/cups $ANDROID_INCLUDE/
 
 cd openjdk
+
+# Apply patches
+git reset --hard
+if [ "$BUILD_IOS" != "1" ]; then
+  git apply --reject --whitespace=fix ../patches/jdk17u_android.diff || echo "git apply failed (Android patch set)"
+else
+  git apply --reject --whitespace=fix ../patches/jdk17u_ios.diff || echo "git apply failed (iOS patch set)"
+fi
+
 # rm -rf build
 
 #   --with-extra-cxxflags="$CXXFLAGS -Dchar16_t=uint16_t -Dchar32_t=uint32_t" \
