@@ -463,6 +463,24 @@ index ae0c73dcb..e2c9a21f7 100644
  // Loads .dll/.so and
  // in case of error it checks if .dll/.so was built for the
  // same architecture as Hotspot is running on
+@@ -1863,6 +1901,7 @@ void * os::Linux::dll_load_in_vmthread(const char *filename, char *ebuf,
+ }
+
+ const char* os::Linux::dll_path(void* lib) {
++#ifdef RTLD_DI_LINKMAP
+   struct link_map *lmap;
+   const char* l_path = NULL;
+   assert(lib != NULL, "dll_path parameter must not be NULL");
+@@ -1872,6 +1911,9 @@ const char* os::Linux::dll_path(void* lib) {
+     l_path = lmap->l_name;
+   }
+   return l_path;
++#else
++  return NULL;
++#endif
+ }
+
+ static bool _print_ascii_file(const char* filename, outputStream* st, const char* hdr = NULL) {
 @@ -2538,6 +2576,19 @@ void os::jvm_path(char *buf, jint buflen) {
                                           CAST_FROM_FN_PTR(address, os::jvm_path),
                                           dli_fname, sizeof(dli_fname), NULL);
@@ -2403,13 +2421,6 @@ index 9df8be1e6..12f9b4de3 100644
  #endif
      if (err == -1) {
          throwUnixException(env, errno);
-@@ -1330,4 +1378,4 @@ Java_sun_nio_fs_UnixNativeDispatcher_flistxattr(JNIEnv* env, jclass clazz,
-     if (res == (size_t)-1)
-         throwUnixException(env, errno);
-     return (jint)res;
--}
-\ No newline at end of file
-+}
 diff --git a/src/java.desktop/unix/native/libawt/awt/awt_LoadLibrary.c b/src/java.desktop/unix/native/libawt/awt/awt_LoadLibrary.c
 index fbd6ce9d1..94d238f8e 100644
 --- a/src/java.desktop/unix/native/libawt/awt/awt_LoadLibrary.c

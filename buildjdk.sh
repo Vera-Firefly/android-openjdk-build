@@ -77,6 +77,12 @@ if [ "$BUILD_IOS" != "1" ]; then
   git apply --reject --whitespace=fix ../patches/jdk17u_android.diff || echo "git apply failed (Android patch set)"
 else
   git apply --reject --whitespace=fix ../patches/jdk17u_ios.diff || echo "git apply failed (iOS patch set)"
+
+  # Hack: exclude building macOS stuff
+  desktop_mac=src/java.desktop/macosx
+  mv ${desktop_mac} ${desktop_mac}_NOTIOS
+  mkdir -p ${desktop_mac}/native
+  mv ${desktop_mac}_NOTIOS/native/libjsound ${desktop_mac}/native/
 fi
 
 # rm -rf build

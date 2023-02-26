@@ -214,14 +214,6 @@ diff --git a/make/modules/java.desktop/Lib.gmk b/make/modules/java.desktop/Lib.g
 index 22b07289a..c505e7e08 100644
 --- a/make/modules/java.desktop/Lib.gmk
 +++ b/make/modules/java.desktop/Lib.gmk
-@@ -55,6 +55,7 @@ ifeq ($(call isTargetOs, aix), false)
-     LIBJSOUND_TOOLCHAIN := TOOLCHAIN_LINK_CXX
-   endif
- 
-+  # -framework AudioUnit
-   $(eval $(call SetupJdkLibrary, BUILD_LIBJSOUND, \
-       NAME := jsound, \
-       TOOLCHAIN := $(LIBJSOUND_TOOLCHAIN), \
 @@ -69,7 +70,7 @@ ifeq ($(call isTargetOs, aix), false)
        LIBS_unix := -ljava -ljvm, \
        LIBS_linux := $(ALSA_LIBS), \
@@ -275,7 +267,7 @@ index 96273fd0a..cb4e06a39 100644
          -framework Cocoa \
          -framework OpenGL \
          -framework Metal \
-@@ -353,12 +353,12 @@ TARGETS += $(BUILD_LIBJAVAJPEG)
+@@ -353,7 +353,7 @@ TARGETS += $(BUILD_LIBJAVAJPEG)
  ################################################################################
  
  # Mac and Windows only use the native AWT lib, do not build libawt_headless
@@ -284,12 +276,6 @@ index 96273fd0a..cb4e06a39 100644
  
    LIBAWT_HEADLESS_EXTRA_SRC := \
        common/font \
--      common/java2d \
-       $(TOPDIR)/src/$(MODULE)/$(OPENJDK_TARGET_OS_TYPE)/native/common/awt \
-+      common/java2d \
-       #
- 
-   LIBAWT_HEADLESS_EXCLUDES := medialib
 @@ -496,7 +496,7 @@ ifeq ($(call isTargetOs, windows), true)
    LIBFONTMANAGER_EXCLUDE_FILES += X11FontScaler.c \
        X11TextRenderer.c
@@ -650,7 +636,7 @@ new file mode 100644
 index 000000000..c7143a769
 --- /dev/null
 +++ b/src/hotspot/os_cpu/bsd_aarch64/tcg-apple-jit.h
-@@ -0,0 +1,86 @@
+@@ -0,0 +1,85 @@
 +/*
 + * Apple Silicon APRR functions for JIT handling
 + *
@@ -736,7 +722,6 @@ index 000000000..c7143a769
 +#endif
 +
 +#endif /* define TCG_APPLE_JIT_H */
-+
 diff --git a/src/java.base/macosx/native/libjava/OSXSCSchemaDefinitions.h b/src/java.base/macosx/native/libjava/OSXSCSchemaDefinitions.h
 new file mode 100644
 index 000000000..122df59ec
