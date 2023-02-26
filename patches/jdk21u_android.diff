@@ -2483,3 +2483,19 @@ index f5573930d..b64e30046 100644
          }
  
          if (codeset == NULL) {
+diff --git a/macroAssembler_aarch64.cpp b/macroAssembler_aarch64.cpp
+index cb0a316..20ceaa6 100644
+--- a/macroAssembler_aarch64.cpp
++++ b/macroAssembler_aarch64.cpp
+@@ -5777,7 +5777,11 @@ void MacroAssembler::get_thread(Register dst) {
+   protect_return_address();
+   push(saved_regs, sp);
+ 
++#ifndef __ANDROID__
+   mov(lr, CAST_FROM_FN_PTR(address, JavaThread::aarch64_get_thread_helper));
++#else
++  mov(lr, CAST_FROM_FN_PTR(address, Thread::current));
++#endif
+   blr(lr);
+   if (dst != c_rarg0) {
+     mov(dst, c_rarg0);
