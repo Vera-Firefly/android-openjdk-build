@@ -1,25 +1,3 @@
-diff --git a/make/autoconf/build-aux/config.sub b/make/autoconf/build-aux/config.sub
-index 8f5a5cf52..0226bc5be 100644
---- a/make/autoconf/build-aux/config.sub
-+++ b/make/autoconf/build-aux/config.sub
-@@ -59,7 +59,7 @@ while test $# -gt 0 ; do
-         -- )   # Stop option processing
-             shift; break ;;
-         aarch64-* )
--            config=`echo $1 | sed 's/^aarch64-/arm-/'`
-+            config=`echo $1 | sed 's/^aarch64-/arm-/' | sed 's/-ios/-darwin/g'`
-             sub_args="$sub_args $config"
-             shift; ;;
-         - )    # Use stdin as input.
-@@ -74,7 +74,7 @@ done
- result=`. $DIR/autoconf-config.sub $sub_args "$@"`
- exitcode=$?
- 
--result=`echo $result | sed "s/^arm-/aarch64-/"`
-+result=`echo $result | sed "s/^arm-/aarch64-/" | sed "s/-darwin/-ios/g"`
- 
- echo $result
- exit $exitcode
 diff --git a/make/autoconf/buildjdk-spec.gmk.in b/make/autoconf/buildjdk-spec.gmk.in
 index 524f35f41..2fe2c57dc 100644
 --- a/make/autoconf/buildjdk-spec.gmk.in
@@ -32,10 +10,10 @@ index 524f35f41..2fe2c57dc 100644
 +# Add a check to determine whether to insert -mmacosx-version-min
 +JVM_BUILDJDK := true
 diff --git a/make/autoconf/flags-cflags.m4 b/make/autoconf/flags-cflags.m4
-index dbde7880a..740b624df 100644
+index 1fdd0143a..15e62216d 100644
 --- a/make/autoconf/flags-cflags.m4
 +++ b/make/autoconf/flags-cflags.m4
-@@ -584,7 +584,7 @@ AC_DEFUN([FLAGS_SETUP_CFLAGS_HELPER],
+@@ -579,7 +579,7 @@ AC_DEFUN([FLAGS_SETUP_CFLAGS_HELPER],
    # Set some additional per-OS defines.
  
    # Additional macosx handling
@@ -45,43 +23,43 @@ index dbde7880a..740b624df 100644
          -mmacosx-version-min=$MACOSX_VERSION_MIN"
  
 diff --git a/make/autoconf/flags-ldflags.m4 b/make/autoconf/flags-ldflags.m4
-index 23bb33e87..7d082104f 100644
+index 2aca285d3..50a20c1f3 100644
 --- a/make/autoconf/flags-ldflags.m4
 +++ b/make/autoconf/flags-ldflags.m4
-@@ -102,11 +102,11 @@ AC_DEFUN([FLAGS_SETUP_LDFLAGS_HELPER],
- 
-   # Setup OS-dependent LDFLAGS
-   if test "x$TOOLCHAIN_TYPE" = xclang || test "x$TOOLCHAIN_TYPE" = xgcc; then
--    if test "x$OPENJDK_TARGET_OS" = xmacosx; then
-+    if test "x$OPENJDK_TARGET_OS" = xmacosx && test "$JVM_BUILDJDK" = true; then
-       # Assume clang or gcc.
-       # FIXME: We should really generalize SET_SHARED_LIBRARY_ORIGIN instead.
-       OS_LDFLAGS_JVM_ONLY="-Wl,-rpath,@loader_path/. -Wl,-rpath,@loader_path/.."
--      OS_LDFLAGS="-mmacosx-version-min=$MACOSX_VERSION_MIN"
-+      #OS_LDFLAGS="-mmacosx-version-min=$MACOSX_VERSION_MIN"
-     fi
+@@ -95,10 +95,10 @@ AC_DEFUN([FLAGS_SETUP_LDFLAGS_HELPER],
    fi
  
+   # Setup OS-dependent LDFLAGS
+-  if test "x$OPENJDK_TARGET_OS" = xmacosx && test "x$TOOLCHAIN_TYPE" = xclang; then
++  if test "x$OPENJDK_TARGET_OS" = xmacosx && test "x$TOOLCHAIN_TYPE" = xclang && test "$JVM_BUILDJDK" = true; then
+     # FIXME: We should really generalize SET_SHARED_LIBRARY_ORIGIN instead.
+     OS_LDFLAGS_JVM_ONLY="-Wl,-rpath,@loader_path/. -Wl,-rpath,@loader_path/.."
+-    OS_LDFLAGS="-mmacosx-version-min=$MACOSX_VERSION_MIN"
++    #OS_LDFLAGS="-mmacosx-version-min=$MACOSX_VERSION_MIN"
+   fi
+ 
+   # Setup debug level-dependent LDFLAGS
 diff --git a/make/autoconf/flags-other.m4 b/make/autoconf/flags-other.m4
-index 0a0429c35..694726ba2 100644
+index 8062a3260..4c34c40ea 100644
 --- a/make/autoconf/flags-other.m4
 +++ b/make/autoconf/flags-other.m4
-@@ -89,8 +89,10 @@ AC_DEFUN([FLAGS_SETUP_ASFLAGS],
+@@ -105,9 +105,11 @@ AC_DEFUN([FLAGS_SETUP_ASFLAGS],
  
      # Fix linker warning.
      # Code taken from make/autoconf/flags-cflags.m4 and adapted.
 +    if test "$JVM_BUILDJDK" = true; then
-     JVM_BASIC_ASFLAGS+=" -DMAC_OS_X_VERSION_MIN_REQUIRED=$MACOSX_VERSION_MIN_NODOTS \
+     JVM_BASIC_ASFLAGS="$JVM_BASIC_ASFLAGS \
+         -DMAC_OS_X_VERSION_MIN_REQUIRED=$MACOSX_VERSION_MIN_NODOTS \
          -mmacosx-version-min=$MACOSX_VERSION_MIN"
 +    fi
  
      if test -n "$MACOSX_VERSION_MAX"; then
-         JVM_BASIC_ASFLAGS+=" $OS_CFLAGS \
+         JVM_BASIC_ASFLAGS="$JVM_BASIC_ASFLAGS $OS_CFLAGS \
 diff --git a/make/autoconf/platform.m4 b/make/autoconf/platform.m4
-index 9e9e9454f..915159ca6 100644
+index babb24a9b..7b770f0e3 100644
 --- a/make/autoconf/platform.m4
 +++ b/make/autoconf/platform.m4
-@@ -200,6 +200,10 @@ AC_DEFUN([PLATFORM_EXTRACT_VARS_FROM_OS],
+@@ -206,6 +206,10 @@ AC_DEFUN([PLATFORM_EXTRACT_VARS_FROM_OS],
        VAR_OS=macosx
        VAR_OS_TYPE=unix
        ;;
@@ -93,7 +71,7 @@ index 9e9e9454f..915159ca6 100644
        VAR_OS=bsd
        VAR_OS_TYPE=unix
 diff --git a/make/common/MakeBase.gmk b/make/common/MakeBase.gmk
-index a9d806da0..5d0e0a785 100644
+index 252d9dd50..d3f0299a9 100644
 --- a/make/common/MakeBase.gmk
 +++ b/make/common/MakeBase.gmk
 @@ -75,7 +75,6 @@ ifeq (4.0, $(firstword $(sort 4.0 $(MAKE_VERSION))))
@@ -105,10 +83,10 @@ index a9d806da0..5d0e0a785 100644
  # least for now.
  
 diff --git a/make/common/modules/LauncherCommon.gmk b/make/common/modules/LauncherCommon.gmk
-index 4a4ccdb23..b38f877f1 100644
+index 5c13478cc..823f29ace 100644
 --- a/make/common/modules/LauncherCommon.gmk
 +++ b/make/common/modules/LauncherCommon.gmk
-@@ -162,8 +162,7 @@ define SetupBuildLauncherBody
+@@ -176,8 +176,7 @@ define SetupBuildLauncherBody
        LDFLAGS_aix := -L$(SUPPORT_OUTPUTDIR)/native/java.base, \
        LIBS := $(JDKEXE_LIBS) $$($1_LIBS), \
        LIBS_linux := -ljli -lpthread $(LIBDL), \
@@ -119,10 +97,10 @@ index 4a4ccdb23..b38f877f1 100644
        LIBS_windows := $$($1_WINDOWS_JLI_LIB) \
            $(SUPPORT_OUTPUTDIR)/native/java.base/libjava/java.lib, \
 diff --git a/make/modules/java.base/Lib.gmk b/make/modules/java.base/Lib.gmk
-index 5658ff342..85230903a 100644
+index 3b7825772..9082367bb 100644
 --- a/make/modules/java.base/Lib.gmk
 +++ b/make/modules/java.base/Lib.gmk
-@@ -55,7 +55,7 @@ $(eval $(call SetupJdkLibrary, BUILD_LIBNET, \
+@@ -58,7 +58,7 @@ $(eval $(call SetupJdkLibrary, BUILD_LIBNET, \
      LIBS_aix := $(LIBDL),\
      LIBS_windows := ws2_32.lib jvm.lib secur32.lib iphlpapi.lib winhttp.lib \
          delayimp.lib $(WIN_JAVA_LIB) advapi32.lib, \
@@ -131,7 +109,7 @@ index 5658ff342..85230903a 100644
  ))
  
  $(BUILD_LIBNET): $(BUILD_LIBJAVA)
-@@ -95,7 +95,7 @@ $(BUILD_LIBNIO): $(BUILD_LIBNET)
+@@ -96,7 +96,7 @@ $(BUILD_LIBNIO): $(BUILD_LIBNET)
  ################################################################################
  # Create the macosx security library
  
@@ -141,10 +119,10 @@ index 5658ff342..85230903a 100644
      $(eval $(call SetupJdkLibrary, BUILD_LIBOSXSECURITY, \
          NAME := osxsecurity, \
 diff --git a/make/modules/java.base/lib/CoreLibraries.gmk b/make/modules/java.base/lib/CoreLibraries.gmk
-index e7188218d..0ae986887 100644
+index 186eff3d6..9595778a4 100644
 --- a/make/modules/java.base/lib/CoreLibraries.gmk
 +++ b/make/modules/java.base/lib/CoreLibraries.gmk
-@@ -210,7 +210,7 @@ $(eval $(call SetupJdkLibrary, BUILD_LIBJLI, \
+@@ -218,7 +218,7 @@ $(eval $(call SetupJdkLibrary, BUILD_LIBJLI, \
      LIBS_unix := $(LIBZ_LIBS), \
      LIBS_linux := $(LIBDL) -lpthread, \
      LIBS_aix := $(LIBDL),\
@@ -154,7 +132,7 @@ index e7188218d..0ae986887 100644
  ))
  
 diff --git a/make/modules/java.desktop/Gensrc.gmk b/make/modules/java.desktop/Gensrc.gmk
-index 1fc36f005..f414759ba 100644
+index f76091079..40211077d 100644
 --- a/make/modules/java.desktop/Gensrc.gmk
 +++ b/make/modules/java.desktop/Gensrc.gmk
 @@ -32,7 +32,7 @@ ifeq ($(call isTargetOs, windows), false)
@@ -176,10 +154,10 @@ index 1fc36f005..f414759ba 100644
        $(TOPDIR)/src/java.desktop/macosx/classes/com/apple/laf/resources \
        $(TOPDIR)/src/java.desktop/macosx/classes/sun/awt/resources \
 diff --git a/make/modules/java.desktop/Java.gmk b/make/modules/java.desktop/Java.gmk
-index 4b1c14a11..b39ea914c 100644
+index 108ee925e..39ca22769 100644
 --- a/make/modules/java.desktop/Java.gmk
 +++ b/make/modules/java.desktop/Java.gmk
-@@ -64,7 +64,7 @@ EXCLUDE_FILES += \
+@@ -65,7 +65,7 @@ EXCLUDE_FILES += \
      .template \
      #
  
@@ -188,7 +166,7 @@ index 4b1c14a11..b39ea914c 100644
    # exclude all X11 on Mac.
    EXCLUDES += \
        sun/awt/X11 \
-@@ -80,6 +80,12 @@ ifeq ($(call isTargetOs, macosx), true)
+@@ -81,6 +81,12 @@ ifeq ($(call isTargetOs, macosx), true)
        $(wildcard $(TOPDIR)/src/java.desktop/unix/classes/sun/font/*.java) \
        #
  else
@@ -201,7 +179,7 @@ index 4b1c14a11..b39ea914c 100644
    # TBD: figure out how to eliminate this long list
    EXCLUDE_FILES += \
        sun/awt/X11/ScreenFormat.java \
-@@ -130,7 +136,7 @@ ifeq ($(call isTargetOs, windows), true)
+@@ -131,7 +137,7 @@ ifeq ($(call isTargetOs, windows), true)
    EXCLUDES += com/sun/java/swing/plaf/gtk
  endif
  
@@ -211,10 +189,10 @@ index 4b1c14a11..b39ea914c 100644
  endif
  
 diff --git a/make/modules/java.desktop/Lib.gmk b/make/modules/java.desktop/Lib.gmk
-index 22b07289a..c505e7e08 100644
+index be1ac3f1f..3a114e48f 100644
 --- a/make/modules/java.desktop/Lib.gmk
 +++ b/make/modules/java.desktop/Lib.gmk
-@@ -69,7 +70,7 @@ ifeq ($(call isTargetOs, aix), false)
+@@ -69,7 +69,7 @@ ifeq ($(call isTargetOs, aix), false)
        LIBS_unix := -ljava -ljvm, \
        LIBS_linux := $(ALSA_LIBS), \
        LIBS_macosx := -framework CoreAudio -framework CoreFoundation \
@@ -223,7 +201,7 @@ index 22b07289a..c505e7e08 100644
            -framework CoreMIDI -framework AudioToolbox $(LIBCXX), \
        LIBS_windows := $(WIN_JAVA_LIB) advapi32.lib dsound.lib winmm.lib user32.lib ole32.lib, \
    ))
-@@ -83,7 +84,7 @@ endif
+@@ -83,7 +83,7 @@ endif
  ################################################################################
  # Create the macosx specific osxapp and osx libraries
  
@@ -233,7 +211,7 @@ index 22b07289a..c505e7e08 100644
    $(eval $(call SetupJdkLibrary, BUILD_LIBOSXAPP, \
        NAME := osxapp, \
 diff --git a/make/modules/java.desktop/gensrc/GensrcIcons.gmk b/make/modules/java.desktop/gensrc/GensrcIcons.gmk
-index e0a6c107e..f844ec1d6 100644
+index 28434d3f4..920a30faa 100644
 --- a/make/modules/java.desktop/gensrc/GensrcIcons.gmk
 +++ b/make/modules/java.desktop/gensrc/GensrcIcons.gmk
 @@ -106,7 +106,7 @@ TARGETS += $(GENSRC_AWT_ICONS)
@@ -246,10 +224,10 @@ index e0a6c107e..f844ec1d6 100644
    GENSRC_OSX_ICONS_DST := $(SUPPORT_OUTPUTDIR)/headers/java.desktop
    GENSRC_OSX_ICONS := $(GENSRC_OSX_ICONS_DST)/AWTIconData.h
 diff --git a/make/modules/java.desktop/lib/Awt2dLibraries.gmk b/make/modules/java.desktop/lib/Awt2dLibraries.gmk
-index 96273fd0a..cb4e06a39 100644
+index 96576bb8d..170e3801d 100644
 --- a/make/modules/java.desktop/lib/Awt2dLibraries.gmk
 +++ b/make/modules/java.desktop/lib/Awt2dLibraries.gmk
-@@ -80,7 +80,7 @@ ifeq ($(call isTargetOs, linux macosx aix), true)
+@@ -81,7 +81,7 @@ ifeq ($(call isTargetOs, linux macosx aix), true)
    LIBAWT_EXFILES += awt_Font.c CUPSfuncs.c fontpath.c X11Color.c
  endif
  
@@ -258,7 +236,7 @@ index 96273fd0a..cb4e06a39 100644
    LIBAWT_EXFILES += initIDs.c awt/image/cvutils/img_colors.c
  endif
  
-@@ -157,7 +157,7 @@ $(eval $(call SetupJdkLibrary, BUILD_LIBAWT, \
+@@ -166,7 +166,7 @@ $(eval $(call SetupJdkLibrary, BUILD_LIBAWT, \
      LIBS_unix := -ljvm -ljava $(LIBM), \
      LIBS_linux :=  $(LIBDL), \
      LIBS_aix := $(LIBDL),\
@@ -267,7 +245,7 @@ index 96273fd0a..cb4e06a39 100644
          -framework Cocoa \
          -framework OpenGL \
          -framework Metal \
-@@ -353,7 +353,7 @@ TARGETS += $(BUILD_LIBJAVAJPEG)
+@@ -358,7 +358,7 @@ TARGETS += $(BUILD_LIBJAVAJPEG)
  ################################################################################
  
  # Mac and Windows only use the native AWT lib, do not build libawt_headless
@@ -276,7 +254,7 @@ index 96273fd0a..cb4e06a39 100644
  
    LIBAWT_HEADLESS_EXTRA_SRC := \
        common/font \
-@@ -496,7 +496,7 @@ ifeq ($(call isTargetOs, windows), true)
+@@ -500,7 +500,7 @@ ifeq ($(call isTargetOs, windows), true)
    LIBFONTMANAGER_EXCLUDE_FILES += X11FontScaler.c \
        X11TextRenderer.c
    LIBFONTMANAGER_OPTIMIZATION := HIGHEST
@@ -285,7 +263,7 @@ index 96273fd0a..cb4e06a39 100644
    LIBFONTMANAGER_EXCLUDE_FILES += X11FontScaler.c \
        X11TextRenderer.c \
        fontpath.c \
-@@ -535,7 +535,7 @@ $(eval $(call SetupJdkLibrary, BUILD_LIBFONTMANAGER, \
+@@ -539,7 +539,7 @@ $(eval $(call SetupJdkLibrary, BUILD_LIBFONTMANAGER, \
      LDFLAGS_aix := -Wl$(COMMA)-berok, \
      LIBS := $(BUILD_LIBFONTMANAGER_FONTLIB), \
      LIBS_unix := -lawt -ljava -ljvm $(LIBM) $(LIBCXX), \
@@ -294,7 +272,7 @@ index 96273fd0a..cb4e06a39 100644
      LIBS_windows := $(WIN_JAVA_LIB) advapi32.lib user32.lib gdi32.lib \
          $(WIN_AWT_LIB), \
  ))
-@@ -543,7 +543,8 @@ $(eval $(call SetupJdkLibrary, BUILD_LIBFONTMANAGER, \
+@@ -547,7 +547,8 @@ $(eval $(call SetupJdkLibrary, BUILD_LIBFONTMANAGER, \
  $(BUILD_LIBFONTMANAGER): $(BUILD_LIBAWT)
  
  ifeq ($(call isTargetOs, macosx), true)
@@ -304,7 +282,7 @@ index 96273fd0a..cb4e06a39 100644
  endif
  
  ifeq ($(FREETYPE_TO_USE), bundled)
-@@ -598,10 +599,11 @@ else # not windows
+@@ -602,10 +603,11 @@ else # not windows
  
    ifeq ($(call isTargetOs, macosx), true)
      # libjawt on macosx do not use the unix code
@@ -318,7 +296,7 @@ index 96273fd0a..cb4e06a39 100644
      JAWT_LIBS := -lawt_lwawt
    else
      JAWT_LIBS := -lawt
-@@ -609,7 +611,7 @@ else # not windows
+@@ -613,7 +615,7 @@ else # not windows
        JAWT_LIBS += -lawt_xawt
      else
        JAWT_LIBS += -lawt_headless
@@ -327,7 +305,7 @@ index 96273fd0a..cb4e06a39 100644
          JAWT_CFLAGS += -DHEADLESS
        endif
      endif
-@@ -631,7 +633,7 @@ else # not windows
+@@ -635,7 +637,7 @@ else # not windows
        LDFLAGS_unix := -L$(INSTALL_LIBRARIES_HERE), \
        LDFLAGS_macosx := -Wl$(COMMA)-rpath$(COMMA)@loader_path, \
        LIBS_unix := $(JAWT_LIBS) $(JDKLIB_LIBS), \
@@ -336,7 +314,7 @@ index 96273fd0a..cb4e06a39 100644
    ))
  
    ifeq ($(ENABLE_HEADLESS_ONLY), false)
-@@ -640,7 +642,7 @@ else # not windows
+@@ -644,7 +646,7 @@ else # not windows
      $(BUILD_LIBJAWT): $(call FindLib, $(MODULE), awt_headless)
    endif
  
@@ -345,7 +323,7 @@ index 96273fd0a..cb4e06a39 100644
     $(BUILD_LIBJAWT): $(call FindLib, $(MODULE), awt_lwawt)
    endif
  
-@@ -771,7 +773,7 @@ endif
+@@ -787,7 +789,7 @@ endif
  
  ################################################################################
  
@@ -354,7 +332,7 @@ index 96273fd0a..cb4e06a39 100644
  
    LIBAWT_LWAWT_EXTRA_SRC := \
        $(TOPDIR)/src/$(MODULE)/unix/native/common/awt \
-@@ -855,7 +857,7 @@ else
+@@ -880,7 +882,7 @@ else
      MACOSX_METAL_VERSION_MIN=10.14.0
  endif
  
@@ -364,10 +342,10 @@ index 96273fd0a..cb4e06a39 100644
    SHADERS_SUPPORT_DIR := $(SUPPORT_OUTPUTDIR)/native/java.desktop/libosxui
    SHADERS_AIR := $(SHADERS_SUPPORT_DIR)/shaders.air
 diff --git a/make/modules/java.instrument/Lib.gmk b/make/modules/java.instrument/Lib.gmk
-index 3996ad213..1a8ed0db9 100644
+index ae985b315..3c2f29ab5 100644
 --- a/make/modules/java.instrument/Lib.gmk
 +++ b/make/modules/java.instrument/Lib.gmk
-@@ -51,8 +51,7 @@ $(eval $(call SetupJdkLibrary, BUILD_LIBINSTRUMENT, \
+@@ -50,8 +50,7 @@ $(eval $(call SetupJdkLibrary, BUILD_LIBINSTRUMENT, \
      LIBS_unix := -ljava -ljvm $(LIBZ_LIBS), \
      LIBS_linux := -ljli $(LIBDL), \
      LIBS_aix := -liconv -ljli_static $(LIBDL), \
@@ -378,10 +356,10 @@ index 3996ad213..1a8ed0db9 100644
          $(WINDOWS_JLI_LIB), \
  ))
 diff --git a/make/modules/java.security.jgss/Lib.gmk b/make/modules/java.security.jgss/Lib.gmk
-index 93acd8f87..571a36f01 100644
+index d9f6114be..a90a0cba5 100644
 --- a/make/modules/java.security.jgss/Lib.gmk
 +++ b/make/modules/java.security.jgss/Lib.gmk
-@@ -70,7 +70,8 @@ ifneq ($(BUILD_CRYPTO), false)
+@@ -72,7 +72,8 @@ ifneq ($(BUILD_CRYPTO), false)
      TARGETS += $(BUILD_LIBW2K_LSA_AUTH)
    endif
  
@@ -391,30 +369,11 @@ index 93acd8f87..571a36f01 100644
      # libosxkrb5 needs to call deprecated krb5 APIs so that java
      # can use the native credentials cache.
      $(eval $(call SetupJdkLibrary, BUILD_LIBOSXKRB5, \
-diff --git a/make/modules/jdk.hotspot.agent/Gensrc.gmk b/make/modules/jdk.hotspot.agent/Gensrc.gmk
-index aee268eb3..01b38ca7f 100644
---- a/make/modules/jdk.hotspot.agent/Gensrc.gmk
-+++ b/make/modules/jdk.hotspot.agent/Gensrc.gmk
-@@ -43,11 +43,12 @@ ifeq ($(call isTargetOs, macosx), true)
-   MACH_EXC_USER := $(MIG_OUTPUT_DIR)/mach_excUser.c
-   MACH_EXC_SERVER := $(MIG_OUTPUT_DIR)/mach_excServer.c
- 
--  $(MACH_EXC_SERVER): $(SDKROOT)/usr/include/mach/mach_exc.defs
-+  $(MACH_EXC_SERVER): ${themacsysroot}/usr/include/mach/mach_exc.defs
- 	$(call MakeTargetDir)
- 	$(MIG) $(if $(SDKROOT), -isysroot $(SDKROOT)) \
-+	    -arch arm64 -isysroot ${themacsysroot} \
- 	    -server $@ -user $(MACH_EXC_USER) \
--	    -header $(MACH_EXC_HEADER) $(SDKROOT)/usr/include/mach/mach_exc.defs
-+	    -header $(MACH_EXC_HEADER) ${themacsysroot}/usr/include/mach/mach_exc.defs
- 
-   TARGETS += $(MACH_EXC_SERVER)
- endif
 diff --git a/make/modules/jdk.hotspot.agent/Lib.gmk b/make/modules/jdk.hotspot.agent/Lib.gmk
-index 59b24d0e4..ef8e36a18 100644
+index 478d199e5..7b1fc5f68 100644
 --- a/make/modules/jdk.hotspot.agent/Lib.gmk
 +++ b/make/modules/jdk.hotspot.agent/Lib.gmk
-@@ -74,6 +74,6 @@ $(eval $(call SetupJdkLibrary, BUILD_LIBSA, \
+@@ -76,6 +76,6 @@ $(eval $(call SetupJdkLibrary, BUILD_LIBSA, \
      LIBS_windows := dbgeng.lib $(WIN_JAVA_LIB), \
  ))
  
@@ -423,20 +382,20 @@ index 59b24d0e4..ef8e36a18 100644
  
  ################################################################################
 diff --git a/make/modules/jdk.jpackage/Lib.gmk b/make/modules/jdk.jpackage/Lib.gmk
-index 1c0a0f9a8..16bbb0322 100644
+index 8cce38fe0..0380c104e 100644
 --- a/make/modules/jdk.jpackage/Lib.gmk
 +++ b/make/modules/jdk.jpackage/Lib.gmk
 @@ -73,7 +73,7 @@ $(eval $(call SetupJdkExecutable, BUILD_JPACKAGE_APPLAUNCHEREXE, \
      CXXFLAGS_windows := $(JPACKAGE_CXXFLAGS_windows), \
      CFLAGS_windows := $(JPACKAGE_CFLAGS_windows), \
      LDFLAGS := $(LDFLAGS_JDKEXE), \
--    LIBS_macosx := $(LIBCXX) -framework Cocoa, \
-+    LIBS_macosx := $(LIBCXX) -framework Foundation, \
-     LIBS_windows := $(LIBCXX), \
+-    LIBS_macosx := $(LIBCXX) -framework Cocoa  -rpath @executable_path/../Frameworks/ -rpath @executable_path/../PlugIns/, \
++    LIBS_macosx := $(LIBCXX) -framework Foundation  -rpath @executable_path/../Frameworks/ -rpath @executable_path/../PlugIns/, \
+     LIBS_windows := $(LIBCXX) user32.lib ole32.lib msi.lib shlwapi.lib \
+         Shell32.lib, \
      LIBS_linux := -ldl, \
-     MANIFEST := $(JAVA_MANIFEST), \
 diff --git a/src/hotspot/cpu/aarch64/nativeInst_aarch64.cpp b/src/hotspot/cpu/aarch64/nativeInst_aarch64.cpp
-index d808e4b5b..7c802d8f1 100644
+index b154c4340..0c7b9ed0d 100644
 --- a/src/hotspot/cpu/aarch64/nativeInst_aarch64.cpp
 +++ b/src/hotspot/cpu/aarch64/nativeInst_aarch64.cpp
 @@ -40,6 +40,8 @@
@@ -477,10 +436,10 @@ index ea9a54bcb..2edbdb89b 100644
  #include <sys/types.h>
  
 diff --git a/src/hotspot/os/bsd/os_bsd.cpp b/src/hotspot/os/bsd/os_bsd.cpp
-index 243c12ce3..879f28df3 100644
+index 144ca8213..05771bc9b 100644
 --- a/src/hotspot/os/bsd/os_bsd.cpp
 +++ b/src/hotspot/os/bsd/os_bsd.cpp
-@@ -793,6 +793,26 @@ void os::Bsd::clock_init() {
+@@ -757,6 +757,26 @@ void os::Bsd::clock_init() {
  
  
  
@@ -507,7 +466,7 @@ index 243c12ce3..879f28df3 100644
  #ifdef __APPLE__
  
  jlong os::javaTimeNanos() {
-@@ -1579,7 +1599,7 @@ static void warn_fail_commit_memory(char* addr, size_t size, bool exec,
+@@ -1508,7 +1528,7 @@ static void warn_fail_commit_memory(char* addr, size_t size, bool exec,
  //       left at the time of mmap(). This could be a potential
  //       problem.
  bool os::pd_commit_memory(char* addr, size_t size, bool exec) {
@@ -515,8 +474,8 @@ index 243c12ce3..879f28df3 100644
 +  int prot = exec&&os::Bsd::isRWXJITAvailable() ? PROT_READ|PROT_WRITE|PROT_EXEC : PROT_READ|PROT_WRITE;
  #if defined(__OpenBSD__)
    // XXX: Work-around mmap/MAP_FIXED bug temporarily on OpenBSD
-   Events::log(NULL, "Protecting memory [" INTPTR_FORMAT "," INTPTR_FORMAT "] with protection modes %x", p2i(addr), p2i(addr+size), prot);
-@@ -1720,7 +1740,7 @@ bool os::remove_stack_guard_pages(char* addr, size_t size) {
+   Events::log(nullptr, "Protecting memory [" INTPTR_FORMAT "," INTPTR_FORMAT "] with protection modes %x", p2i(addr), p2i(addr+size), prot);
+@@ -1649,7 +1669,7 @@ bool os::remove_stack_guard_pages(char* addr, size_t size) {
  static char* anon_mmap(char* requested_addr, size_t bytes, bool exec) {
    // MAP_FIXED is intentionally left out, to leave existing mappings intact.
    const int flags = MAP_PRIVATE | MAP_NORESERVE | MAP_ANONYMOUS
@@ -526,10 +485,10 @@ index 243c12ce3..879f28df3 100644
    // Map reserved/uncommitted pages PROT_NONE so we fail early if we
    // touch an uncommitted page. Otherwise, the read/write might
 diff --git a/src/hotspot/os/bsd/os_bsd.hpp b/src/hotspot/os/bsd/os_bsd.hpp
-index e61469290..b3423fd81 100644
+index 87f4b6958..471d4dc82 100644
 --- a/src/hotspot/os/bsd/os_bsd.hpp
 +++ b/src/hotspot/os/bsd/os_bsd.hpp
-@@ -58,6 +58,7 @@ class Bsd {
+@@ -56,6 +56,7 @@ class os::Bsd {
  
   public:
  
@@ -538,20 +497,10 @@ index e61469290..b3423fd81 100644
    static pthread_t main_thread(void)                                { return _main_thread; }
  
 diff --git a/src/hotspot/os/posix/signals_posix.cpp b/src/hotspot/os/posix/signals_posix.cpp
-index 895c3cc09..b77c925ba 100644
+index 285e69ba1..8f34df3bb 100644
 --- a/src/hotspot/os/posix/signals_posix.cpp
 +++ b/src/hotspot/os/posix/signals_posix.cpp
-@@ -40,6 +40,9 @@
- #include "utilities/ostream.hpp"
- #include "utilities/vmError.hpp"
- 
-+#include "code/codeCache.hpp"
-+#include <sys/mman.h>
-+
- #ifdef ZERO
- // See stubGenerator_zero.cpp
- #include <setjmp.h>
-@@ -584,6 +587,26 @@ int JVM_HANDLE_XXX_SIGNAL(int sig, siginfo_t* info,
+@@ -574,6 +574,26 @@ int JVM_HANDLE_XXX_SIGNAL(int sig, siginfo_t* info,
    ucontext_t* const uc = (ucontext_t*) ucVoid;
    Thread* const t = Thread::current_or_null_safe();
  
@@ -609,10 +558,10 @@ index 7e9ca43ef..9374ac999 100644
  };
  
 diff --git a/src/hotspot/os_cpu/bsd_aarch64/os_bsd_aarch64.cpp b/src/hotspot/os_cpu/bsd_aarch64/os_bsd_aarch64.cpp
-index d9a54bf69..af3ceb494 100644
+index 97c42e2a6..f5f2f85f3 100644
 --- a/src/hotspot/os_cpu/bsd_aarch64/os_bsd_aarch64.cpp
 +++ b/src/hotspot/os_cpu/bsd_aarch64/os_bsd_aarch64.cpp
-@@ -54,6 +54,7 @@
+@@ -55,6 +55,7 @@
  #include "utilities/align.hpp"
  #include "utilities/events.hpp"
  #include "utilities/vmError.hpp"
@@ -620,7 +569,7 @@ index d9a54bf69..af3ceb494 100644
  
  // put OS-includes here
  # include <sys/types.h>
-@@ -540,7 +541,9 @@ int os::extra_bang_size_in_bytes() {
+@@ -543,7 +544,9 @@ int os::extra_bang_size_in_bytes() {
  }
  
  void os::current_thread_enable_wx(WXMode mode) {
@@ -630,10 +579,10 @@ index d9a54bf69..af3ceb494 100644
 +  }
  }
  
- extern "C" {
+ static inline void atomic_copy64(const volatile void *src, volatile void *dst) {
 diff --git a/src/hotspot/os_cpu/bsd_aarch64/tcg-apple-jit.h b/src/hotspot/os_cpu/bsd_aarch64/tcg-apple-jit.h
 new file mode 100644
-index 000000000..c7143a769
+index 000000000..e8227412b
 --- /dev/null
 +++ b/src/hotspot/os_cpu/bsd_aarch64/tcg-apple-jit.h
 @@ -0,0 +1,85 @@
@@ -3076,7 +3025,7 @@ index 000000000..122df59ec
 +
 +#endif	/* _SCSCHEMADEFINITIONS_H */
 diff --git a/src/java.base/macosx/native/libjava/java_props_macosx.c b/src/java.base/macosx/native/libjava/java_props_macosx.c
-index 1935c202f..390843cc6 100644
+index f50daac13..4fd69c6fc 100644
 --- a/src/java.base/macosx/native/libjava/java_props_macosx.c
 +++ b/src/java.base/macosx/native/libjava/java_props_macosx.c
 @@ -29,7 +29,13 @@
@@ -3094,7 +3043,7 @@ index 1935c202f..390843cc6 100644
  
  #include "java_props_macosx.h"
 diff --git a/src/java.base/macosx/native/libnet/DefaultProxySelector.c b/src/java.base/macosx/native/libnet/DefaultProxySelector.c
-index aa91f3012..1310cf2e4 100644
+index a176699be..e18f20ac7 100644
 --- a/src/java.base/macosx/native/libnet/DefaultProxySelector.c
 +++ b/src/java.base/macosx/native/libnet/DefaultProxySelector.c
 @@ -27,6 +27,9 @@
@@ -3128,7 +3077,7 @@ index f5dc048a4..1232d94a9 100644
 +#endif
  }
 diff --git a/src/java.desktop/macosx/native/libjsound/PLATFORM_API_MacOSX_PCM.cpp b/src/java.desktop/macosx/native/libjsound/PLATFORM_API_MacOSX_PCM.cpp
-index 608ee13d7..53fee94c7 100644
+index 441a71f5c..debefd42e 100644
 --- a/src/java.desktop/macosx/native/libjsound/PLATFORM_API_MacOSX_PCM.cpp
 +++ b/src/java.desktop/macosx/native/libjsound/PLATFORM_API_MacOSX_PCM.cpp
 @@ -44,6 +44,9 @@
@@ -3185,7 +3134,7 @@ index 000000000..4375ef716
 +}
 +#endif
 diff --git a/src/java.desktop/unix/native/common/awt/fontpath.c b/src/java.desktop/unix/native/common/awt/fontpath.c
-index df35e78e6..bd4a1ab1b 100644
+index e64a9b051..6e4a9f0b7 100644
 --- a/src/java.desktop/unix/native/common/awt/fontpath.c
 +++ b/src/java.desktop/unix/native/common/awt/fontpath.c
 @@ -319,8 +319,9 @@ static char *getPlatformFontPathChars(JNIEnv *env, jboolean noType1, jboolean is
@@ -3272,7 +3221,7 @@ index 000000000..508fdfc1f
 +#endif
 +#endif
 diff --git a/src/java.desktop/unix/native/libawt/awt/awt_LoadLibrary.c b/src/java.desktop/unix/native/libawt/awt/awt_LoadLibrary.c
-index fbd6ce9d1..20c336074 100644
+index b2dedca35..8d7180cf4 100644
 --- a/src/java.desktop/unix/native/libawt/awt/awt_LoadLibrary.c
 +++ b/src/java.desktop/unix/native/libawt/awt/awt_LoadLibrary.c
 @@ -39,6 +39,10 @@
