@@ -2483,19 +2483,17 @@ index f5573930d..b64e30046 100644
          }
  
          if (codeset == NULL) {
-diff --git a/macroAssembler_aarch64.cpp b/macroAssembler_aarch64.cpp
-index cb0a316..20ceaa6 100644
---- a/macroAssembler_aarch64.cpp
-+++ b/macroAssembler_aarch64.cpp
-@@ -5777,7 +5777,11 @@ void MacroAssembler::get_thread(Register dst) {
-   protect_return_address();
-   push(saved_regs, sp);
+diff --git a/src/hotspot/os_cpu/linux_aarch64/javaThread_linux_aarch64.hpp b/src/hotspot/os_cpu/linux_aarch64/javaThread_linux_aarch64.hpp
+index c6e012ecf..d4f956756 100644
+--- a/src/hotspot/os_cpu/linux_aarch64/javaThread_linux_aarch64.hpp
++++ b/src/hotspot/os_cpu/linux_aarch64/javaThread_linux_aarch64.hpp
+@@ -47,6 +47,8 @@ private:
+   bool pd_get_top_frame(frame* fr_addr, void* ucontext, bool isInJava);
+ public:
  
-+#ifndef __ANDROID__
-   mov(lr, CAST_FROM_FN_PTR(address, JavaThread::aarch64_get_thread_helper));
-+#else
-+  mov(lr, CAST_FROM_FN_PTR(address, Thread::current));
-+#endif
-   blr(lr);
-   if (dst != c_rarg0) {
-     mov(dst, c_rarg0);
+-  static Thread *aarch64_get_thread_helper();
++  static Thread *aarch64_get_thread_helper() {
++    return Thread::current();
++  }
+ 
+ #endif // OS_CPU_LINUX_AARCH64_JAVATHREAD_LINUX_AARCH64_HPP

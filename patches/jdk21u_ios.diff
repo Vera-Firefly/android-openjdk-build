@@ -376,16 +376,16 @@ index b2bd016a5..3e78ab9af 100644
 @@ -46,11 +46,12 @@ ifeq ($(call isTargetOs, macosx), true)
      MIG_SYSROOT_FLAGS := -isysroot $(SYSROOT)
    endif
-
+ 
 -  $(MACH_EXC_SERVER): $(SYSROOT)/usr/include/mach/mach_exc.defs
 +  $(MACH_EXC_SERVER): ${themacsysroot}/usr/include/mach/mach_exc.defs
-        $(call MakeTargetDir)
-        $(MIG) $(MIG_SYSROOT_FLAGS) \
+ 	$(call MakeTargetDir)
+ 	$(MIG) $(MIG_SYSROOT_FLAGS) \
 +            -isysroot ${themacsysroot} \
-            -server $@ -user $(MACH_EXC_USER) \
--           -header $(MACH_EXC_HEADER) $(SYSROOT)/usr/include/mach/mach_exc.defs
-+           -header $(MACH_EXC_HEADER) ${themacsysroot}/usr/include/mach/mach_exc.defs
-
+ 	    -server $@ -user $(MACH_EXC_USER) \
+-	    -header $(MACH_EXC_HEADER) $(SYSROOT)/usr/include/mach/mach_exc.defs
++	    -header $(MACH_EXC_HEADER) ${themacsysroot}/usr/include/mach/mach_exc.defs
+ 
    TARGETS += $(MACH_EXC_SERVER)
  endif
 diff --git a/make/modules/jdk.hotspot.agent/Lib.gmk b/make/modules/jdk.hotspot.agent/Lib.gmk
