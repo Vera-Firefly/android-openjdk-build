@@ -144,21 +144,6 @@ index f76091079..40211077d 100644
    include gensrc/GensrcX11Wrappers.gmk
  endif
  
-@@ -46,11 +46,12 @@ ifeq ($(call isTargetOs, macosx), true)
-     MIG_SYSROOT_FLAGS := -isysroot $(SYSROOT)
-   endif
- 
--  $(MACH_EXC_SERVER): $(SYSROOT)/usr/include/mach/mach_exc.defs
-+  $(MACH_EXC_SERVER): ${themacsysroot}/usr/include/mach/mach_exc.defs
- 	$(call MakeTargetDir)
- 	$(MIG) $(MIG_SYSROOT_FLAGS) \
-+	    -isysroot ${themacsysroot} \
- 	    -server $@ -user $(MACH_EXC_USER) \
--	    -header $(MACH_EXC_HEADER) $(SYSROOT)/usr/include/mach/mach_exc.defs
-+	    -header $(MACH_EXC_HEADER) ${themacsysroot}/usr/include/mach/mach_exc.defs
- 
-   TARGETS += $(MACH_EXC_SERVER)
- endif
 @@ -52,7 +52,7 @@ PROP_SRC_DIRS := \
      $(TOPDIR)/src/java.desktop/share/classes/sun/print/resources \
      #
@@ -384,6 +369,25 @@ index d9f6114be..a90a0cba5 100644
      # libosxkrb5 needs to call deprecated krb5 APIs so that java
      # can use the native credentials cache.
      $(eval $(call SetupJdkLibrary, BUILD_LIBOSXKRB5, \
+diff --git a/make/modules/jdk.hotspot.agent/Gensrc.gmk b/make/modules/jdk.hotspot.agent/Gensrc.gmk
+index b2bd016a5..3e78ab9af 100644
+--- a/make/modules/jdk.hotspot.agent/Gensrc.gmk
++++ b/make/modules/jdk.hotspot.agent/Gensrc.gmk
+@@ -46,11 +46,12 @@ ifeq ($(call isTargetOs, macosx), true)
+     MIG_SYSROOT_FLAGS := -isysroot $(SYSROOT)
+   endif
+
+-  $(MACH_EXC_SERVER): $(SYSROOT)/usr/include/mach/mach_exc.defs
++  $(MACH_EXC_SERVER): ${themacsysroot}/usr/include/mach/mach_exc.defs
+        $(call MakeTargetDir)
+        $(MIG) $(MIG_SYSROOT_FLAGS) \
++            -isysroot ${themacsysroot} \
+            -server $@ -user $(MACH_EXC_USER) \
+-           -header $(MACH_EXC_HEADER) $(SYSROOT)/usr/include/mach/mach_exc.defs
++           -header $(MACH_EXC_HEADER) ${themacsysroot}/usr/include/mach/mach_exc.defs
+
+   TARGETS += $(MACH_EXC_SERVER)
+ endif
 diff --git a/make/modules/jdk.hotspot.agent/Lib.gmk b/make/modules/jdk.hotspot.agent/Lib.gmk
 index 478d199e5..7b1fc5f68 100644
 --- a/make/modules/jdk.hotspot.agent/Lib.gmk
