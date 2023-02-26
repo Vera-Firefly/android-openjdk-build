@@ -33,6 +33,10 @@ if [ "$BUILD_IOS" != "1" ]; then
     --with-freetype-lib=$FREETYPE_DIR/lib \
     "
   AUTOCONF_x11arg="--x-includes=$ANDROID_INCLUDE/X11"
+  AUTOCONF_EXTRA_ARGS+="OBJCOPY=$OBJCOPY \
+    AR=$AR \
+    STRIP=$STRIP \
+    "
 
   export BOOT_JDK=$PWD/jdk-20
   export CFLAGS+=" -DANDROID"
@@ -107,9 +111,6 @@ bash ./configure \
     --with-devkit=$TOOLCHAIN \
     --with-debug-level=$JDK_DEBUG_LEVEL \
     --with-fontconfig-include=$ANDROID_INCLUDE \
-    OBJCOPY=$OBJCOPY \
-    AR=$AR \
-    STRIP=$STRIP \
     $AUTOCONF_x11arg $AUTOCONF_EXTRA_ARGS \
     --x-libraries=/usr/lib \
         $platform_args || \
