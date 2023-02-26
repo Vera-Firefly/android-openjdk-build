@@ -45,10 +45,7 @@ else
 
 export JVM_PLATFORM=linux
 # Set NDK
-if [[ -z "$API" ]]; then
-  export API=21
-  export TARGET=${TARGET}${API}
-fi
+export API=21
 if [[ -z "$ANDROID_NDK_ROOT" ]]; then
   export NDK=$PWD/android-ndk-$NDK_VERSION
   export ANDROID_NDK_ROOT=$NDK
@@ -63,16 +60,16 @@ export ANDROID_INCLUDE=$TOOLCHAIN/sysroot/usr/include
 export CPPFLAGS="-I$ANDROID_INCLUDE -I$ANDROID_INCLUDE/$TARGET" # -I/usr/include -I/usr/lib
 export LDFLAGS="-L$NDK/platforms/android-$API/arch-$TARGET_SHORT/usr/lib"
 
-export thecc=$TOOLCHAIN/bin/${TARGET}-clang
-export thecxx=$TOOLCHAIN/bin/${TARGET}-clang++
+export thecc=$TOOLCHAIN/bin/${TARGET}${API}-clang
+export thecxx=$TOOLCHAIN/bin/${TARGET}${API}-clang++
 
 # Configure and build.
-export AR=$TOOLCHAIN/bin/$TARGET-ar
-export AS=$TOOLCHAIN/bin/$TARGET-as
+export AR=$TOOLCHAIN/bin/llvm-ar
+export AS=$TOOLCHAIN/bin/llvm-as
 export CC=$PWD/android-wrapped-clang
 export CXX=$PWD/android-wrapped-clang++
-export LD=$TOOLCHAIN/bin/$TARGET-ld
-export OBJCOPY=$TOOLCHAIN/bin/$TARGET-objcopy
-export RANLIB=$TOOLCHAIN/bin/$TARGET-ranlib
-export STRIP=$TOOLCHAIN/bin/$TARGET-strip
+export LD=$TOOLCHAIN/bin/ld
+export OBJCOPY=$TOOLCHAIN/bin/llvm-objcopy
+export RANLIB=$TOOLCHAIN/bin/llvm-ranlib
+export STRIP=$TOOLCHAIN/bin/llvm-strip
 fi

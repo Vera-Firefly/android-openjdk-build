@@ -144,6 +144,21 @@ index f76091079..40211077d 100644
    include gensrc/GensrcX11Wrappers.gmk
  endif
  
+@@ -46,11 +46,12 @@ ifeq ($(call isTargetOs, macosx), true)
+     MIG_SYSROOT_FLAGS := -isysroot $(SYSROOT)
+   endif
+ 
+-  $(MACH_EXC_SERVER): $(SYSROOT)/usr/include/mach/mach_exc.defs
++  $(MACH_EXC_SERVER): ${themacsysroot}/usr/include/mach/mach_exc.defs
+ 	$(call MakeTargetDir)
+ 	$(MIG) $(MIG_SYSROOT_FLAGS) \
++	    -isysroot ${themacsysroot} \
+ 	    -server $@ -user $(MACH_EXC_USER) \
+-	    -header $(MACH_EXC_HEADER) $(SYSROOT)/usr/include/mach/mach_exc.defs
++	    -header $(MACH_EXC_HEADER) ${themacsysroot}/usr/include/mach/mach_exc.defs
+ 
+   TARGETS += $(MACH_EXC_SERVER)
+ endif
 @@ -52,7 +52,7 @@ PROP_SRC_DIRS := \
      $(TOPDIR)/src/java.desktop/share/classes/sun/print/resources \
      #
@@ -500,6 +515,17 @@ diff --git a/src/hotspot/os/posix/signals_posix.cpp b/src/hotspot/os/posix/signa
 index 285e69ba1..8f34df3bb 100644
 --- a/src/hotspot/os/posix/signals_posix.cpp
 +++ b/src/hotspot/os/posix/signals_posix.cpp
+@@ -45,8 +45,10 @@
+ #include "utilities/events.hpp"
+ #include "utilities/ostream.hpp"
+ #include "utilities/vmError.hpp"
++#include "os_bsd.hpp"
+ 
+ #include <signal.h>
++#include <sys/mman.h>
+ 
+ 
+static const char* get_signal_name(int sig, char* out, size_t outlen);
 @@ -574,6 +574,26 @@ int JVM_HANDLE_XXX_SIGNAL(int sig, siginfo_t* info,
    ucontext_t* const uc = (ucontext_t*) ucVoid;
    Thread* const t = Thread::current_or_null_safe();
