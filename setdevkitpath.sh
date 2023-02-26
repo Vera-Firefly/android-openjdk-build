@@ -60,8 +60,10 @@ export ANDROID_INCLUDE=$TOOLCHAIN/sysroot/usr/include
 export CPPFLAGS="-I$ANDROID_INCLUDE -I$ANDROID_INCLUDE/$TARGET" # -I/usr/include -I/usr/lib
 export LDFLAGS="-L$NDK/platforms/android-$API/arch-$TARGET_SHORT/usr/lib"
 
-export thecc=$TOOLCHAIN/bin/${TARGET}${API}-clang
-export thecxx=$TOOLCHAIN/bin/${TARGET}${API}-clang++
+export TARGET=${TARGET}${API}
+
+export thecc=$TOOLCHAIN/bin/${TARGET}-clang
+export thecxx=$TOOLCHAIN/bin/${TARGET}-clang++
 
 # Configure and build.
 export AR=$TOOLCHAIN/bin/$TARGET-ar
