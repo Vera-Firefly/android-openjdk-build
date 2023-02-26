@@ -54,7 +54,6 @@ else
     ln -s -f /usr/local/include/fontconfig $ANDROID_INCLUDE/
   fi
   platform_args="--with-toolchain-type=clang --with-sysroot=$(xcrun --sdk iphoneos --show-sdk-path) \
-    --with-boot-jdk=$(/usr/libexec/java_home -v 17) \
     --with-freetype=bundled \
     "
   AUTOCONF_x11arg="--with-x=/opt/X11/include/X11 --prefix=/usr/lib"
@@ -69,14 +68,16 @@ fi
 # fix building libjawt
 ln -s -f $CUPS_DIR/cups $ANDROID_INCLUDE/
 
+BOOT_JDK=$PWD/jdk-20
+
 cd openjdk
 
 # Apply patches
 git reset --hard
 if [ "$BUILD_IOS" != "1" ]; then
-  git apply --reject --whitespace=fix ../patches/jdk17u_android.diff || echo "git apply failed (Android patch set)"
+  git apply --reject --whitespace=fix ../patches/jdk21u_android.diff || echo "git apply failed (Android patch set)"
 else
-  git apply --reject --whitespace=fix ../patches/jdk17u_ios.diff || echo "git apply failed (iOS patch set)"
+  git apply --reject --whitespace=fix ../patches/jdk21u_ios.diff || echo "git apply failed (iOS patch set)"
 
   # Hack: exclude building macOS stuff
   desktop_mac=src/java.desktop/macosx
@@ -91,7 +92,7 @@ fi
 #   --with-extra-cflags="$CPPFLAGS" \
 
 bash ./configure \
-    --with-boot-jdk=/usr/lib/jvm/openjdk-20 \
+    --with-boot-jdk=$BOOT_JDK \
     --openjdk-target=$TARGET \
     --with-extra-cflags="$CFLAGS" \
     --with-extra-cxxflags="$CFLAGS" \
