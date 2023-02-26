@@ -107,6 +107,9 @@ bash ./configure \
     --with-devkit=$TOOLCHAIN \
     --with-debug-level=$JDK_DEBUG_LEVEL \
     --with-fontconfig-include=$ANDROID_INCLUDE \
+    OBJCOPY=$OBJCOPY \
+    AR=$AR \
+    STRIP=$STRIP \
     $AUTOCONF_x11arg $AUTOCONF_EXTRA_ARGS \
     --x-libraries=/usr/lib \
         $platform_args || \
