@@ -45,7 +45,10 @@ else
 
 export JVM_PLATFORM=linux
 # Set NDK
-export API=21
+if [[ -z "$API" ]]; then
+  export API=21
+  export TARGET=${TARGET}${API}
+fi
 if [[ -z "$ANDROID_NDK_ROOT" ]]; then
   export NDK=$PWD/android-ndk-$NDK_VERSION
   export ANDROID_NDK_ROOT=$NDK
@@ -59,8 +62,6 @@ export ANDROID_INCLUDE=$TOOLCHAIN/sysroot/usr/include
 
 export CPPFLAGS="-I$ANDROID_INCLUDE -I$ANDROID_INCLUDE/$TARGET" # -I/usr/include -I/usr/lib
 export LDFLAGS="-L$NDK/platforms/android-$API/arch-$TARGET_SHORT/usr/lib"
-
-export TARGET=${TARGET}${API}
 
 export thecc=$TOOLCHAIN/bin/${TARGET}-clang
 export thecxx=$TOOLCHAIN/bin/${TARGET}-clang++

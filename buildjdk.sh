@@ -34,8 +34,9 @@ if [ "$BUILD_IOS" != "1" ]; then
     "
   AUTOCONF_x11arg="--x-includes=$ANDROID_INCLUDE/X11"
 
+  export BOOT_JDK=$PWD/jdk-20
   export CFLAGS+=" -DANDROID"
-  export LDFLAGS+=" -L$PWD/dummy_libs"
+  export LDFLAGS+=" -L$PWD/dummy_libs" 
 
   sudo apt -y install systemtap-sdt-dev libxtst-dev libasound2-dev libelf-dev libfontconfig1-dev libx11-dev libxext-dev libxrandr-dev libxrender-dev libxtst-dev libxt-dev
 
@@ -58,6 +59,7 @@ else
     "
   AUTOCONF_x11arg="--with-x=/opt/X11/include/X11 --prefix=/usr/lib"
   sameflags="-arch arm64 -DHEADLESS=1 -I$PWD/ios-missing-include -Wno-implicit-function-declaration -DTARGET_OS_OSX"
+  export BOOT_JDK=$PWD/jdk-20.jdk/Contents/Home
   export CFLAGS+=" $sameflags"
   export LDFLAGS+="-arch arm64"
   export BUILD_SYSROOT_CFLAGS="-isysroot ${themacsysroot}"
@@ -67,8 +69,6 @@ fi
 
 # fix building libjawt
 ln -s -f $CUPS_DIR/cups $ANDROID_INCLUDE/
-
-BOOT_JDK=$PWD/jdk-20
 
 cd openjdk
 
