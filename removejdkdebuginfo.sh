@@ -52,10 +52,9 @@ if [ "$BUILD_IOS" == "1" ]; then
   install_name_tool -change build_android-arm64/lib/libfreetype.dylib @rpath/libfreetype.dylib jdkout/lib/libfontmanager.dylib
   install_name_tool -change build_android-arm64/lib/libfreetype.dylib @rpath/libfreetype.dylib jreout/lib/libfontmanager.dylib
 
-  JAVA_HOME=/usr/lib/jvm/java-17-openjdk
   for dafile in $(find j*out -name "*.dylib"); do
-    install_name_tool -add_rpath $JAVA_HOME/lib/server \
-      -add_rpath $JAVA_HOME/lib -add_rpath $JAVA_HOME/jre/lib $dafile
+    install_name_tool -add_rpath @loader_path -add_rpath @loader_path/jli -add_rpath @loader_path/server \
+      -add_rpath @loader_path/.. -add_rpath @loader_path/../jli -add_rpath @loader_path/../server $dafile
     ldid -Sios-sign-entitlements.xml $dafile
   done
   ldid -Sios-sign-entitlements.xml jreout/bin/*
