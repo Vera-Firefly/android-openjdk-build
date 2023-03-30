@@ -54,7 +54,7 @@ if [ "$BUILD_IOS" == "1" ]; then
 
   for dafile in $(find j*out -name "*.dylib"); do
     install_name_tool -add_rpath @loader_path -add_rpath @loader_path/jli -add_rpath @loader_path/server \
-      -add_rpath @loader_path/.. -add_rpath @loader_path/../jli -add_rpath @loader_path/../server $dafile
+      -add_rpath @loader_path/.. -add_rpath @loader_path/../jli -add_rpath @loader_path/../server $dafile || true
     ldid -Sios-sign-entitlements.xml $dafile
   done
   ldid -Sios-sign-entitlements.xml jreout/bin/*
