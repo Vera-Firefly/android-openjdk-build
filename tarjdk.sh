@@ -30,6 +30,10 @@ fi
 cp -rv jre_override/lib/* jreout/lib/ || true
 
 cd jreout
+
+# Strip in place all .so files thanks to the ndk
+find ./ -name '*.so' -execdir $NDK/toolchains/llvm/prebuilt/linux-x86_64/${NDK_PREBUILT_ARCH}-linux-android/bin/strip {} \;
+
 tar cJf ../jre17-${TARGET_SHORT}-`date +%Y%m%d`-${JDK_DEBUG_LEVEL}.tar.xz .
 
 cd ../jdkout
