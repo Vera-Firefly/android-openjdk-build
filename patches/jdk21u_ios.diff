@@ -426,6 +426,34 @@ index b154c4340..0c7b9ed0d 100644
  void NativeCall::verify() {
    assert(NativeCall::is_call_at((address)this), "unexpected code at call site");
  }
+diff --git a/src/hotspot/os/bsd/gc/x/xPhysicalMemoryBacking_bsd.cpp b/src/hotspot/os/bsd/gc/x/xPhysicalMemoryBacking_bsd.cpp
+index ea9a54bcb..2edbdb89b 100644
+--- a/src/hotspot/os/bsd/gc/x/xPhysicalMemoryBacking_bsd.cpp
++++ b/src/hotspot/os/bsd/gc/x/xPhysicalMemoryBacking_bsd.cpp
+@@ -34,8 +34,23 @@
+ #include "utilities/align.hpp"
+ #include "utilities/debug.hpp"
+ 
++#include <TargetConditionals.h>
+ #include <mach/mach.h>
++#if TARGET_OS_IPHONE
++extern "C" kern_return_t mach_vm_remap(vm_map_t target_task,
++                                   mach_vm_address_t *target_address,
++                                   mach_vm_size_t size,
++                                   mach_vm_offset_t mask,
++                                   int flags,
++                                   vm_map_t src_task,
++                                   mach_vm_address_t src_address,
++                                   boolean_t copy,
++                                   vm_prot_t *cur_protection,
++                                   vm_prot_t *max_protection,
++                                   vm_inherit_t inheritance);
++#else
+ #include <mach/mach_vm.h>
++#endif
+ #include <sys/mman.h>
+ #include <sys/types.h>
+ 
 diff --git a/src/hotspot/os/bsd/gc/z/zPhysicalMemoryBacking_bsd.cpp b/src/hotspot/os/bsd/gc/z/zPhysicalMemoryBacking_bsd.cpp
 index ea9a54bcb..2edbdb89b 100644
 --- a/src/hotspot/os/bsd/gc/z/zPhysicalMemoryBacking_bsd.cpp
