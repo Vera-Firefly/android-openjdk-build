@@ -196,7 +196,7 @@ index 186eff3d6..ca76357b0 100644
 +
  $(BUILD_LIBJAVA): $(BUILD_LIBVERIFY)
  
- $(BUILD_LIBJAVA): $(BUILD_LIBFDLIBM)
+ 
 diff --git a/make/modules/java.desktop/Lib.gmk b/make/modules/java.desktop/Lib.gmk
 index be1ac3f1f..4dd31c4b1 100644
 --- a/make/modules/java.desktop/Lib.gmk
@@ -288,8 +288,8 @@ index 2a43e81b3..ccb0afff5 100644
  
  ################################################################################
  
--ifeq ($(call isTargetOs, linux macosx windows), true)
-+ifeq ($(call isTargetOs, linux macosx windows android), true)
+-ifeq ($(call isTargetOs, linux macosx windows aix), true)
++ifeq ($(call isTargetOs, linux macosx windows aix android), true)
  
    $(eval $(call SetupJdkLibrary, BUILD_LIBEXTNET, \
        NAME := extnet, \
@@ -327,7 +327,7 @@ index 42680218d..403d8905b 100644
 +
  // utility functions
  
- julong os::available_memory() {
+ julong os::Linux::available_memory_in_container() {
 @@ -336,11 +338,11 @@ bool os::Linux::get_tick_information(CPUPerfTicks* pticks, int which_logical_cpu
  }
  
@@ -432,7 +432,7 @@ index 42680218d..403d8905b 100644
 +#endif
  }
  
- static bool _print_ascii_file(const char* filename, outputStream* st, const char* hdr = nullptr) {
+ static unsigned count_newlines(const char* s) {
 @@ -2475,6 +2517,20 @@ void os::jvm_path(char *buf, jint buflen) {
                                           CAST_FROM_FN_PTR(address, os::jvm_path),
                                           dli_fname, sizeof(dli_fname), nullptr);
