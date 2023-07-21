@@ -39,8 +39,8 @@ fi
 # find jreout -name "*.debuginfo" | xargs -- rm
 # mv jreout/lib/${TARGET_JDK}/libfontmanager.diz.keep jreout/lib/${TARGET_JDK}/libfontmanager.diz
 
-find jdkout -name "*.debuginfo" | xargs -- rm
-find jreout -name "*.debuginfo" -exec mv {}   dizout/ \;
+#find jdkout -name "*.debuginfo" | xargs -- rm
+find jdkout -name "*.debuginfo" -exec mv {}   dizout/ \;
 
 find jdkout -name "*.dSYM"  | xargs -- rm -rf
 
