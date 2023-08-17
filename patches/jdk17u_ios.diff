@@ -435,19 +435,6 @@ index 1c0a0f9a8..16bbb0322 100644
      LIBS_windows := $(LIBCXX), \
      LIBS_linux := -ldl, \
      MANIFEST := $(JAVA_MANIFEST), \
-diff --git a/src/hotspot/cpu/aarch64/nativeInst_aarch64.cpp b/src/hotspot/cpu/aarch64/nativeInst_aarch64.cpp
-index d808e4b5b..7c802d8f1 100644
---- a/src/hotspot/cpu/aarch64/nativeInst_aarch64.cpp
-+++ b/src/hotspot/cpu/aarch64/nativeInst_aarch64.cpp
-@@ -40,6 +40,8 @@
- #include "c1/c1_Runtime1.hpp"
- #endif
- 
-+#include <sys/mman.h>
-+
- void NativeCall::verify() {
-   assert(NativeCall::is_call_at((address)this), "unexpected code at call site");
- }
 diff --git a/src/hotspot/os/bsd/gc/z/zPhysicalMemoryBacking_bsd.cpp b/src/hotspot/os/bsd/gc/z/zPhysicalMemoryBacking_bsd.cpp
 index ea9a54bcb..2edbdb89b 100644
 --- a/src/hotspot/os/bsd/gc/z/zPhysicalMemoryBacking_bsd.cpp
@@ -541,16 +528,22 @@ diff --git a/src/hotspot/os/posix/signals_posix.cpp b/src/hotspot/os/posix/signa
 index 895c3cc09..b77c925ba 100644
 --- a/src/hotspot/os/posix/signals_posix.cpp
 +++ b/src/hotspot/os/posix/signals_posix.cpp
-@@ -40,6 +40,9 @@
- #include "utilities/ostream.hpp"
+@@ -25,6 +25,7 @@
+ #include "precompiled.hpp"
+ 
+ #include "jvm.h"
++#include "code/codeCache.hpp"
+ #include "logging/log.hpp"
+ #include "runtime/atomic.hpp"
+ #include "runtime/globals.hpp"
+@@ -41,6 +42,7 @@
  #include "utilities/vmError.hpp"
  
-+#include "code/codeCache.hpp"
+ #include <signal.h>
 +#include <sys/mman.h>
-+
- #ifdef ZERO
- // See stubGenerator_zero.cpp
- #include <setjmp.h>
+ 
+ 
+ static const char* get_signal_name(int sig, char* out, size_t outlen);
 @@ -584,6 +587,26 @@ int JVM_HANDLE_XXX_SIGNAL(int sig, siginfo_t* info,
    ucontext_t* const uc = (ucontext_t*) ucVoid;
    Thread* const t = Thread::current_or_null_safe();
