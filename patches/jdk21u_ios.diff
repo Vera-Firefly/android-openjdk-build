@@ -2,10 +2,10 @@ diff --git a/make/autoconf/buildjdk-spec.gmk.in b/make/autoconf/buildjdk-spec.gm
 index 524f35f41..2fe2c57dc 100644
 --- a/make/autoconf/buildjdk-spec.gmk.in
 +++ b/make/autoconf/buildjdk-spec.gmk.in
-@@ -103,3 +103,6 @@ JVM_FEATURES_server := cds compiler1 compiler2 g1gc serialgc
- override EXTRA_CFLAGS :=
- override EXTRA_CXXFLAGS :=
- override EXTRA_LDFLAGS :=
+@@ -107,3 +107,6 @@ override EXTRA_LDFLAGS :=
+ # hsdis is not needed
+ HSDIS_BACKEND := none
+ ENABLE_HSDIS_BUNDLING := false
 +
 +# Add a check to determine whether to insert -mmacosx-version-min
 +JVM_BUILDJDK := true
@@ -165,7 +165,7 @@ index 108ee925e..39ca22769 100644
 +ifeq ($(call isTargetOs, macosx_NOTIOS), true)
    # exclude all X11 on Mac.
    EXCLUDES += \
-       sun/awt/X11 \
+       sun/awt/screencast \
 @@ -81,6 +81,12 @@ ifeq ($(call isTargetOs, macosx), true)
        $(wildcard $(TOPDIR)/src/java.desktop/unix/classes/sun/font/*.java) \
        #
@@ -413,19 +413,6 @@ index 8cce38fe0..0380c104e 100644
      LIBS_windows := $(LIBCXX) user32.lib ole32.lib msi.lib shlwapi.lib \
          Shell32.lib, \
      LIBS_linux := -ldl, \
-diff --git a/src/hotspot/cpu/aarch64/nativeInst_aarch64.cpp b/src/hotspot/cpu/aarch64/nativeInst_aarch64.cpp
-index b154c4340..0c7b9ed0d 100644
---- a/src/hotspot/cpu/aarch64/nativeInst_aarch64.cpp
-+++ b/src/hotspot/cpu/aarch64/nativeInst_aarch64.cpp
-@@ -40,6 +40,8 @@
- #include "c1/c1_Runtime1.hpp"
- #endif
- 
-+#include <sys/mman.h>
-+
- void NativeCall::verify() {
-   assert(NativeCall::is_call_at((address)this), "unexpected code at call site");
- }
 diff --git a/src/hotspot/os/bsd/gc/x/xPhysicalMemoryBacking_bsd.cpp b/src/hotspot/os/bsd/gc/x/xPhysicalMemoryBacking_bsd.cpp
 index ea9a54bcb..2edbdb89b 100644
 --- a/src/hotspot/os/bsd/gc/x/xPhysicalMemoryBacking_bsd.cpp
