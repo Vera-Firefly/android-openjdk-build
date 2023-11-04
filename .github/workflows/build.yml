@@ -1,4 +1,4 @@
-name: Build OpenJDK 8 for Android
+name: Build OpenJDK for Android
 
 on:
   push:
