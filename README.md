@@ -1,3 +1,5 @@
+## This repository was forked on [PojavLauncherTeam](https://github.com/PojavLauncherTeam/android-openjdk-build-multiarch)
+
 # mobile-openjdk8-build-multiarch 
 
 Based on http://openjdk.java.net/projects/mobile/android.html
