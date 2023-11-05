@@ -1,4 +1,4 @@
-name: Build OpenJDK 17 for Android and iOS
+name: Build OpenJDK for Android
 
 on: [push, pull_request, workflow_dispatch]
 
@@ -30,38 +30,6 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: "jre21-debuginfo-${{matrix.arch}}"
-        path: dizout
-
-  build_iosport:
-    name: "Build for iOS aarch64"
-    runs-on: MacStadium
-    continue-on-error: true
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v2
-
-    - name: Build with CI build script
-      run: |
-        export PATH=/opt/procursus/bin:/opt/homebrew/bin:$PATH
-        export BUILD_IOS=1
-        bash "ci_build_arch_aarch64.sh"
-
-    - name: Upload JDK build output
-      uses: actions/upload-artifact@v2
-      with:
-        name: "jdk21-ios-aarch64"
-        path: jdk21*.tar.xz
-
-    - name: Upload JRE build output
-      uses: actions/upload-artifact@v2
-      with:
-        name: 'jre21-ios-aarch64'
-        path: jre21*.tar.xz
-
-    - name: Upload JRE debuginfo build output
-      uses: actions/upload-artifact@v2
-      with:
-        name: "jre21-ios-debuginfo-aarch64"
         path: dizout
 
   pojav:
