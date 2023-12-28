@@ -27,6 +27,13 @@ if [ "$TARGET_JDK" == "aarch64" ] || [ "$TARGET_JDK" == "x86_64" ]; then
    export EXTRA_JLINK_OPTION=,jdk.internal.vm.ci
 fi
 
+export EXTRA_JLINK_OPTION=
+
+if [ "$TARGET_JDK" == "aarch64" ] || [ "$TARGET_JDK" == "x86_64" ]; then
+   echo "Building for aarch64 or x86_64, introducing JVMCI module"
+   export EXTRA_JLINK_OPTION=,jdk.incubator.vector
+fi
+
 # Produce the jre equivalent from the jdk (https://blog.adoptium.net/2021/10/jlink-to-produce-own-runtime/)
 jlink \
 --module-path=jdkout/jmods \
