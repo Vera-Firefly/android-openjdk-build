@@ -96,7 +96,6 @@ fi
 #   --with-extra-cflags="$CPPFLAGS" \
 
 bash ./configure \
-    --with-version-pre=- \
     --with-boot-jdk=$BOOT_JDK \
     --openjdk-target=$TARGET \
     --with-extra-cflags="$CFLAGS" \
