@@ -7,5 +7,5 @@ git clone --depth 1 --branch ios https://github.com/PojavLauncherTeam/openjdk-mu
 else
 # Use aarch32 repo because it also has aarch64
 
-git clone --depth 1 https://github.com/openjdk/jdk8u openjdk
+git clone -b shenandoah-jdk8u402-b05 --depth 1 https://github.com/gnu-andrew/shenandoah-jdk8u openjdk
 fi
