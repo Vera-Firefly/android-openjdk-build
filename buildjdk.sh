@@ -85,7 +85,6 @@ fi
 #   --with-toolchain-type=clang \
 #   --with-native-debug-symbols=none \
 bash ./configure \
-    --with-version-pre=- \
     --openjdk-target=$TARGET_PHYS \
     --with-extra-cflags="$CFLAGS" \
     --with-extra-cxxflags="$CFLAGS" \
