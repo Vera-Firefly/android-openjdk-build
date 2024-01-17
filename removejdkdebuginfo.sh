@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-if [ "$TARGET_JDK" == "arm" ]; then
+if [[ "$TARGET_JDK" == "arm" ]]; then
   export TARGET_JDK=aarch32
 fi
 
@@ -13,7 +13,7 @@ mkdir dizout
 cp -r $imagespath/j2re-image jreout
 cp -r $imagespath/j2sdk-image jdkout
 
-if [ "$TARGET_JDK" == "x86" ]; then
+if [[ "$TARGET_JDK" == "x86" ]]; then
   export TARGET_JDK=i386
 fi
 
