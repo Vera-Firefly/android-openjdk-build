@@ -40,7 +40,6 @@ jobs:
         name: 'jre8-${{matrix.arch}}'
         path: jre8*.tar.xz
     - name: Upload JRE debuginfo build output
-actions/upload-artifact@v4
       uses: actions/upload-artifact@v4.1.0
       with:
         name: "jre8-debuginfo-${{matrix.arch}}"
