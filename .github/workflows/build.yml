@@ -29,18 +29,18 @@ jobs:
     - name: Build with CI build script
       run: bash "ci_build_arch_${{matrix.arch}}.sh"
     - name: Upload JDK build output
-      uses: actions/upload-artifact@v4.0.0
+      uses: actions/upload-artifact@v4.1.0
       with:
         name: "jdk8-${{matrix.arch}}"
         path: jdk8*.tar.xz
 
     - name: Upload JRE build output
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v4.1.0
       with:
         name: 'jre8-${{matrix.arch}}'
         path: jre8*.tar.xz
     - name: Upload JRE debuginfo build output
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v4.1.0
       with:
         name: "jre8-debuginfo-${{matrix.arch}}"
         path: dizout
@@ -74,7 +74,7 @@ jobs:
     - name: Repack JRE
       run: bash "repackjre.sh" $GITHUB_WORKSPACE/pojav $GITHUB_WORKSPACE/pojav/jre8-pojav
     - name: Upload artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v4.1.0
       with:
           name: jre8-pojav
           path: pojav/jre8-pojav/*
