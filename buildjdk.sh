@@ -2,7 +2,7 @@
 set -e
 . setdevkitpath.sh
 
-if [ "$TARGET_JDK" == "arm" ]
+if [[ "$TARGET_JDK" == "arm" ]]
 then
   export TARGET_JDK=aarch32
   export TARGET_PHYS=aarch32-linux-androideabi
@@ -15,7 +15,7 @@ export FREETYPE_DIR=$PWD/freetype-$BUILD_FREETYPE_VERSION/build_android-$TARGET_
 export CUPS_DIR=$PWD/cups-2.2.4
 export CFLAGS+=" -DLE_STANDALONE" # -I$FREETYPE_DIR -I$CUPS_DI
 
-# if [ "$TARGET_JDK" == "aarch32" ] || [ "$TARGET_JDK" == "aarch64" ]
+# if [[ "$TARGET_JDK" == "aarch32" ]] || [[ "$TARGET_JDK" == "aarch64" ]]
 # then
 #   export CFLAGS+=" -march=armv7-a+neon"
 # fi
@@ -35,7 +35,6 @@ if [ "$BUILD_IOS" != "1" ]; then
 
   export LDFLAGS+=" -L`pwd`/dummy_libs"
 
-  sudo apt -y install systemtap-sdt-dev gcc-multilib g++-multilib libxtst-dev libasound2-dev libelf-dev libfontconfig1-dev libx11-dev
 # Create dummy libraries so we won't have to remove them in OpenJDK makefiles
   mkdir -p dummy_libs
   ar cru dummy_libs/libpthread.a
@@ -69,7 +68,7 @@ if [ "$BUILD_IOS" != "1" ]; then
   else
     git apply --reject --whitespace=fix ../patches/jdk8u_android_aarch32.diff || echo "git apply failed (aarch32 non-universal patch set)"
   fi
-  if [ "$TARGET_JDK" == "x86" ]; then
+  if [[ "$TARGET_JDK" == "x86" ]]; then
     git apply --reject --whitespace=fix ../patches/jdk8u_android_page_trap_fix.diff || echo "git apply failed (x86 page trap fix)"
   fi
 fi
