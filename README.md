@@ -8,7 +8,7 @@ Based on http://openjdk.java.net/projects/mobile/android.html
 
 ### Setup
 #### Android
-- Download Android NDK r10e from https://developer.android.com/ndk/downloads/older_releases.html and place it in this directory (Can't automatically download because of EULA)
+- Download Android NDK r21 from https://developer.android.com/ndk/downloads/older_releases.html and place it in this directory (Can't automatically download because of EULA)
 - **Warning**: Do not attempt to build use newer or older NDK, it will lead to compilation errors.
 
 #### iOS
@@ -60,7 +60,7 @@ Based on http://openjdk.java.net/projects/mobile/android.html
 ```
 export BUILD_IOS=1 # only when targeting iOS, default is 0 (target Android)
 
-export BUILD_FREETYPE_VERSION=[2.6.2/.../2.10.4] # default: 2.10.4
+export BUILD_FREETYPE_VERSION=[2.6.2/.../2.10.4] # default: 2.10.0
 export JDK_DEBUG_LEVEL=[release/fastdebug/debug] # default: release
 export JVM_VARIANTS=[client/server] # default: client (aarch32), server (other architectures)
 
