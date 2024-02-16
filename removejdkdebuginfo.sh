@@ -8,7 +8,7 @@ targetpath=openjdk/build/${JVM_PLATFORM}-${TARGET_JDK}-${JVM_VARIANTS}-${JDK_DEB
 rm -rf dizout jreout jdkout dSYM-temp
 mkdir -p dizout dSYM-temp/{lib,bin}
 
-if [ "$BUILD_IOS" != "1" ]; then
+if [[ "$BUILD_IOS" != "1" ]]; then
    cp freetype-$BUILD_FREETYPE_VERSION/build_android-$TARGET_SHORT/lib/libfreetype.so $targetpath/images/jdk/lib/
 fi
 
@@ -22,17 +22,11 @@ cp -r $targetpath/images/jdk jdkout
 
 export EXTRA_JLINK_OPTION=
 
-if [ "$TARGET_JDK" == "aarch64" ] || [ "$TARGET_JDK" == "x86_64" ]; then
+if [[ "$TARGET_JDK" == "aarch64" ]] || [[ "$TARGET_JDK" == "x86_64" ]]; then
    echo "Building for aarch64 or x86_64, introducing JVMCI module"
    export EXTRA_JLINK_OPTION=,jdk.internal.vm.ci
 fi
-
-export EXTRA_JLINK_OPTION=
-
-if [ "$TARGET_JDK" == "aarch64" ] || [ "$TARGET_JDK" == "x86_64" ]; then
-   echo "Building for aarch64 or x86_64, introducing JVMCI module"
    export EXTRA_JLINK_OPTION=,jdk.incubator.vector
-fi
 
 # Produce the jre equivalent from the jdk (https://blog.adoptium.net/2021/10/jlink-to-produce-own-runtime/)
 $targetpath/buildjdk/jdk/bin/jlink \
@@ -45,7 +39,7 @@ $targetpath/buildjdk/jdk/bin/jlink \
 --release-info=jdkout/release \
 --compress=0
 
-if [ "$BUILD_IOS" != "1" ]; then
+if [[ "$BUILD_IOS" != "1" ]]; then
    cp freetype-$BUILD_FREETYPE_VERSION/build_android-$TARGET_SHORT/lib/libfreetype.so jreout/lib/
 fi
 
@@ -60,7 +54,7 @@ find jdkout -name "*.dSYM"  | xargs -- rm -rf
 
 #TODO: fix .dSYM stuff
 
-if [ "$BUILD_IOS" == "1" ]; then
+if [[ "$BUILD_IOS" == "1" ]]; then
   install_name_tool -id @rpath/libfreetype.dylib jdkout/lib/libfreetype.dylib
   install_name_tool -id @rpath/libfreetype.dylib jreout/lib/libfreetype.dylib
   install_name_tool -change build_android-arm64/lib/libfreetype.dylib @rpath/libfreetype.dylib jdkout/lib/libfontmanager.dylib
