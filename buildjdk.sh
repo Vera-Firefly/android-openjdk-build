@@ -38,11 +38,8 @@ if [ "$BUILD_IOS" != "1" ]; then
     STRIP=$STRIP \
     "
 
-  export BOOT_JDK=$PWD/jdk-20
   export CFLAGS+=" -DANDROID"
   export LDFLAGS+=" -L$PWD/dummy_libs" 
-
-  sudo apt -y install systemtap-sdt-dev libxtst-dev libasound2-dev libelf-dev libfontconfig1-dev libx11-dev libxext-dev libxrandr-dev libxrender-dev libxtst-dev libxt-dev
 
 # Create dummy libraries so we won't have to remove them in OpenJDK makefiles
   mkdir -p dummy_libs
@@ -59,6 +56,7 @@ else
     ln -s -f /usr/local/include/fontconfig $ANDROID_INCLUDE/
   fi
   platform_args="--with-toolchain-type=clang --with-sysroot=$(xcrun --sdk iphoneos --show-sdk-path) \
+    --with-boot-jdk=$(/usr/libexec/java_home -v 21) \
     --with-freetype=bundled \
     "
   AUTOCONF_x11arg="--with-x=/opt/X11/include/X11 --prefix=/usr/lib"
@@ -97,7 +95,6 @@ fi
 
 bash ./configure \
     --with-version-pre=- \
-    --with-boot-jdk=$BOOT_JDK \
     --openjdk-target=$TARGET \
     --with-extra-cflags="$CFLAGS" \
     --with-extra-cxxflags="$CFLAGS" \
