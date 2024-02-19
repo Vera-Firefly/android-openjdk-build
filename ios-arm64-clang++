@@ -1,2 +1,0 @@
-#echo $0 $@
-exec $thecxx -arch arm64 -isysroot $thesysroot -miphoneos-version-min=12.0 "$@"
