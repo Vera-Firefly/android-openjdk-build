@@ -21,11 +21,23 @@ jobs:
     - name: Build with CI build script
       run: bash "ci_build_arch_${{matrix.arch}}.sh"
 
+    - name: Upload JDK build output
+      uses: actions/upload-artifact@v4
+      with:
+        name: "jdk11-${{matrix.arch}}"
+        path: jdk11*.tar.xz
+
     - name: Upload JRE build output
       uses: actions/upload-artifact@v4
       with:
         name: 'jre11-${{matrix.arch}}'
         path: jre11*.tar.xz
+
+    - name: Upload JRE debuginfo build output
+      uses: actions/upload-artifact@v4
+      with:
+        name: "jre11-debuginfo-${{matrix.arch}}"
+        path: dizout
 
   pojav:
     needs: build_android
