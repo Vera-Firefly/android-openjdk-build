@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+set -euo pipefail
 if [[ "$TARGET_JDK" == "arm" ]]; then
 git clone --depth 1 https://github.com/openjdk/aarch32-port-jdk8u openjdk
 elif [ "$BUILD_IOS" == "1" ]; then
@@ -7,5 +7,5 @@ git clone --depth 1 --branch ios https://github.com/PojavLauncherTeam/openjdk-mu
 else
 # Use aarch32 repo because it also has aarch64
 
-git clone --depth 1 https://github.com/openjdk/jdk8u openjdk
+git clone -b revert-621-dev --depth 1 https://github.com/dragonwell-project/dragonwell8 openjdk
 fi
