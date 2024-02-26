@@ -24,25 +24,6 @@ then
   export JVM_VARIANTS=server
 fi
 
-if [[ "$BUILD_IOS" == "1" ]]; then
-  export JVM_PLATFORM=macosx
-
-  export thecc=$(xcrun -find -sdk iphoneos clang)
-  export thecxx=$(xcrun -find -sdk iphoneos clang++)
-  export thesysroot=$(xcrun --sdk iphoneos --show-sdk-path)
-  export themacsysroot=$(xcrun --sdk macosx --show-sdk-path)
-
-  export thehostcxx=$PWD/macos-host-cc
-  export CC=$PWD/ios-arm64-clang
-  export CXX=$PWD/ios-arm64-clang++
-  export CXXCPP="$CXX -E"
-  export LD=$(xcrun -find -sdk iphoneos ld)
-
-  export HOTSPOT_DISABLE_DTRACE_PROBES=1
-
-  export ANDROID_INCLUDE=$PWD/ios-missing-include
-else
-
 export JVM_PLATFORM=linux
 # Set NDK
 export API=21
@@ -68,4 +49,3 @@ export LD=$TOOLCHAIN/bin/$TARGET-ld
 export OBJCOPY=$TOOLCHAIN/bin/$TARGET-objcopy
 export RANLIB=$TOOLCHAIN/bin/$TARGET-ranlib
 export STRIP=$TOOLCHAIN/bin/$TARGET-strip
-fi
