@@ -23,6 +23,7 @@ fi
 # cp -R /usr/include/X11 $ANDROID_INCLUDE/
 # cp -R /usr/include/fontconfig $ANDROID_INCLUDE/
 
+
 chmod +x android-wrapped-clang
 chmod +x android-wrapped-clang++
 ln -s -f /usr/include/X11 $ANDROID_INCLUDE/
@@ -58,13 +59,6 @@ cd openjdk
 git reset --hard
 git apply --reject --whitespace=fix ../patches/jdk21u_android.diff || echo "git apply failed (Android patch set)"
 
-  # Hack: exclude building macOS stuff
-  desktop_mac=src/java.desktop/macosx
-  mv ${desktop_mac} ${desktop_mac}_NOTIOS
-  mkdir -p ${desktop_mac}/native
-  mv ${desktop_mac}_NOTIOS/native/libjsound ${desktop_mac}/native/
-fi
-
 # rm -rf build
 
 #   --with-extra-cxxflags="$CXXFLAGS -Dchar16_t=uint16_t -Dchar32_t=uint32_t" \
@@ -97,7 +91,6 @@ if [[ "$error_code" -ne 0 ]]; then
 fi
 
 jobs=4
-
 
 cd build/${JVM_PLATFORM}-${TARGET_JDK}-${JVM_VARIANTS}-${JDK_DEBUG_LEVEL}
 make JOBS=$jobs images || \
