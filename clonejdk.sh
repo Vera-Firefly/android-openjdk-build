@@ -1,4 +1,4 @@
 #!/bin/bash
 set -e
 
-git clone -b 20240211 --depth 1 https://github.com/giaobupai/jdk17u openjdk
+git clone --depth 1 https://github.com/adoptium/jdk17u openjdk
