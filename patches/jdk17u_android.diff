@@ -2310,6 +2310,10 @@ index 9df8be1e6..12f9b4de3 100644
  typedef int futimens_func(int, const struct timespec *);
  typedef int lutimes_func(const char *, const struct timeval *);
  typedef DIR* fdopendir_func(int);
+ #if defined(__linux__)
+ typedef int statx_func(int dirfd, const char *restrict pathname, int flags,
+                        unsigned int mask, struct my_statx *restrict statxbuf);
+ #endif
 @@ -149,13 +150,49 @@ static fstatat64_func* my_fstatat64_func = NULL;
  static unlinkat_func* my_unlinkat_func = NULL;
  static renameat_func* my_renameat_func = NULL;
