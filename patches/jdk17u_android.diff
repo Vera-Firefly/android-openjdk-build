@@ -2302,9 +2302,8 @@ diff --git a/src/java.base/unix/native/libnio/fs/UnixNativeDispatcher.c b/src/ja
 index 9df8be1e6..12f9b4de3 100644
 --- a/src/java.base/unix/native/libnio/fs/UnixNativeDispatcher.c
 +++ b/src/java.base/unix/native/libnio/fs/UnixNativeDispatcher.c
-@@ -82,6 +82,6 @@
+@@ -82,6 +82,5 @@
  #ifndef __GLIBC__
- // Alpine doesn't know these types, define them
  typedef unsigned int       __uint32_t;
  typedef unsigned short     __uint16_t;
  typedef unsigned long long int  __uint64_t;
