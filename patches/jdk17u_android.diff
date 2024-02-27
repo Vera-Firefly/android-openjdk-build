@@ -2302,11 +2302,11 @@ diff --git a/src/java.base/unix/native/libnio/fs/UnixNativeDispatcher.c b/src/ja
 index 9df8be1e6..12f9b4de3 100644
 --- a/src/java.base/unix/native/libnio/fs/UnixNativeDispatcher.c
 +++ b/src/java.base/unix/native/libnio/fs/UnixNativeDispatcher.c
-@@ -82,6 +82,5 @@
- #ifndef __GLIBC__
+@@ -84,4 +84,4 @@
  typedef unsigned int       __uint32_t;
  typedef unsigned short     __uint16_t;
- typedef unsigned long long int  __uint64_t;
+-typedef unsigned long int  __uint64_t;
++typedef unsigned long long int  __uint64_t;
  #endif
 @@ -140,10 +140,11 @@ typedef int fstatat64_func(int, const char *, struct stat64 *, int);
  typedef int unlinkat_func(int, const char*, int);
