@@ -57,11 +57,7 @@ cd openjdk
 
 # Apply patches
 git reset --hard
-if [[ "$TARGET_JDK" == "arm" ]] || [[ "$TARGET_JDK" == "x86" ]]; then
-  git apply --reject --whitespace=fix ../patches/jdk21u_android_32.diff || echo "git apply failed (Android patch set)"
-else
-  git apply --reject --whitespace=fix ../patches/jdk21u_android_64.diff || echo "git apply failed (Android patch set)"
-fi
+git apply --reject --whitespace=fix ../patches/jdk21u_android.diff || echo "git apply failed (Android patch set)"
 
 # rm -rf build
 
