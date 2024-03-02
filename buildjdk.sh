@@ -12,7 +12,7 @@ else
   export CFLAGS+=" -O3"
 fi
 
-# if [ "$TARGET_JDK" == "aarch32" ] || [ "$TARGET_JDK" == "aarch64" ]
+# if [[ "$TARGET_JDK" == "aarch32" ]] || [[ "$TARGET_JDK" == "aarch64" ]]
 # then
 #   export CFLAGS+=" -march=armv7-a+neon"
 # fi
@@ -44,10 +44,31 @@ export LDFLAGS+=" -L$PWD/dummy_libs"
 sudo apt -y install systemtap-sdt-dev libxtst-dev libasound2-dev libelf-dev libfontconfig1-dev libx11-dev libxext-dev libxrandr-dev libxrender-dev libxtst-dev libxt-dev
 
 # Create dummy libraries so we won't have to remove them in OpenJDK makefiles
-mkdir -p dummy_libs
-ar cru dummy_libs/libpthread.a
-ar cru dummy_libs/librt.a
-ar cru dummy_libs/libthread_db.a
+  mkdir -p dummy_libs
+  ar cru dummy_libs/libpthread.a
+  ar cru dummy_libs/librt.a
+  ar cru dummy_libs/libthread_db.a
+  
+  ln -s -f /opt/X11/include/X11 $ANDROID_INCLUDE/
+  ln -sfn $themacsysroot/System/Library/Frameworks/CoreAudio.framework/Headers $ANDROID_INCLUDE/CoreAudio
+  ln -sfn $themacsysroot/System/Library/Frameworks/IOKit.framework/Headers $ANDROID_INCLUDE/IOKit
+  if [[ "$(uname -p)" == "arm" ]]; then
+    ln -s -f /opt/homebrew/include/fontconfig $ANDROID_INCLUDE/
+  else
+    ln -s -f /usr/local/include/fontconfig $ANDROID_INCLUDE/
+  fi
+  platform_args="--with-toolchain-type=clang --with-sysroot=$(xcrun --sdk iphoneos --show-sdk-path) \
+    --with-boot-jdk=$(/usr/libexec/java_home -v 21) \
+    --with-freetype=bundled \
+    "
+  AUTOCONF_x11arg="--with-x=/opt/X11/include/X11 --prefix=/usr/lib"
+  sameflags="-arch arm64 -DHEADLESS=1 -I$PWD/ios-missing-include -Wno-implicit-function-declaration -DTARGET_OS_OSX"
+  export CFLAGS+=" $sameflags"
+  export LDFLAGS+="-arch arm64"
+  export BUILD_SYSROOT_CFLAGS="-isysroot ${themacsysroot}"
+
+  HOMEBREW_NO_AUTO_UPDATE=1 brew install fontconfig ldid xquartz autoconf
+fi
 
 # fix building libjawt
 ln -s -f $CUPS_DIR/cups $ANDROID_INCLUDE/
@@ -68,7 +89,7 @@ fi
 #   --with-extra-cflags="$CPPFLAGS" \
 
 bash ./configure \
-    --with-boot-jdk=$BOOT_JDK \
+    --with-version-pre=- \
     --openjdk-target=$TARGET \
     --with-extra-cflags="$CFLAGS" \
     --with-extra-cxxflags="$CFLAGS" \
