@@ -10,6 +10,7 @@ export PATH=$TOOLCHAIN/bin:$PATH
   --host=$TARGET \
   --prefix=${PWD}/build_android-${TARGET_SHORT} \
   --without-zlib \
+  --with-brotli=no \
   --with-png=no \
   --with-harfbuzz=no $EXTRA_ARGS \
   || error_code=$?
