@@ -165,7 +165,7 @@ index d80b804a2..fd2a8ed15 100644
  
 -ifeq ($(call isTargetOs, linux), true)
 +ifeq ($(call isTargetOs, android linux), true)
-   DUMP_SYMBOLS_CMD := $(NM) --defined-only *$(OBJ_SUFFIX)
+   DUMP_SYMBOLS_CMD := $(NM) $(NMFLAGS) --defined-only *$(OBJ_SUFFIX)
    ifneq ($(FILTER_SYMBOLS_PATTERN), )
      FILTER_SYMBOLS_PATTERN := $(FILTER_SYMBOLS_PATTERN)|
 diff --git a/make/hotspot/lib/JvmOverrideFiles.gmk b/make/hotspot/lib/JvmOverrideFiles.gmk
@@ -2276,6 +2276,12 @@ diff --git a/src/java.base/unix/native/libnio/fs/UnixNativeDispatcher.c b/src/ja
 index 9371bc001..ab7dd0fc0 100644
 --- a/src/java.base/unix/native/libnio/fs/UnixNativeDispatcher.c
 +++ b/src/java.base/unix/native/libnio/fs/UnixNativeDispatcher.c
+@@ -84,4 +84,4 @@
+ typedef unsigned int       __uint32_t;
+ typedef unsigned short     __uint16_t;
+-typedef unsigned long int  __uint64_t;
++typedef unsigned long long int  __uint64_t;
+ #endif
 @@ -140,6 +140,7 @@ typedef int fstatat64_func(int, const char *, struct stat64 *, int);
  typedef int unlinkat_func(int, const char*, int);
  typedef int renameat_func(int, const char*, int, const char*);
@@ -2284,7 +2290,7 @@ index 9371bc001..ab7dd0fc0 100644
  typedef int futimens_func(int, const struct timespec *);
  typedef int lutimes_func(const char *, const struct timeval *);
  typedef DIR* fdopendir_func(int);
-@@ -149,10 +150,46 @@ static fstatat64_func* my_fstatat64_func = NULL;
+@@ -149,13 +150,49 @@ static fstatat64_func* my_fstatat64_func = NULL;
  static unlinkat_func* my_unlinkat_func = NULL;
  static renameat_func* my_renameat_func = NULL;
  static futimesat_func* my_futimesat_func = NULL;
@@ -2292,6 +2298,9 @@ index 9371bc001..ab7dd0fc0 100644
  static futimens_func* my_futimens_func = NULL;
  static lutimes_func* my_lutimes_func = NULL;
  static fdopendir_func* my_fdopendir_func = NULL;
+ #if defined(__linux__)
+ static statx_func* my_statx_func = NULL;
+ #endif
  
 +#ifdef __ANDROID__
 +/*

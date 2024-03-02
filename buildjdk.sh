@@ -23,7 +23,6 @@ fi
 # cp -R /usr/include/X11 $ANDROID_INCLUDE/
 # cp -R /usr/include/fontconfig $ANDROID_INCLUDE/
 
-
 chmod +x android-wrapped-clang
 chmod +x android-wrapped-clang++
 ln -s -f /usr/include/X11 $ANDROID_INCLUDE/
@@ -57,7 +56,11 @@ cd openjdk
 
 # Apply patches
 git reset --hard
-git apply --reject --whitespace=fix ../patches/jdk21u_android.diff || echo "git apply failed (Android patch set)"
+if [[ "$TARGET_JDK" == "arm" ]] || [[ "$TARGET_JDK" == "x86" ]]; then
+  git apply --reject --whitespace=fix ../patches/jdk21u_android_32.diff || echo "git apply failed (Android patch set)"
+else
+  git apply --reject --whitespace=fix ../patches/jdk21u_android_64.diff || echo "git apply failed (Android patch set)"
+fi
 
 # rm -rf build
 
