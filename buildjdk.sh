@@ -9,7 +9,11 @@ if [[ "$TARGET_JDK" == "arm" ]]
 then
   export CFLAGS+=" -O3 -D__thumb__"
 else
-  export CFLAGS+=" -O3"
+  if [[ "$TARGET_JDK" == "x86" ]]; then
+     export CFLAGS+=" -O3 -mstackrealign"
+  else
+     export CFLAGS+=" -O3"
+  fi
 fi
 
 # if [ "$TARGET_JDK" == "aarch32" ] || [ "$TARGET_JDK" == "aarch64" ]
@@ -37,11 +41,8 @@ AUTOCONF_EXTRA_ARGS+="OBJCOPY=$OBJCOPY \
   STRIP=$STRIP \
   "
 
-export BOOT_JDK=$PWD/jdk-20
 export CFLAGS+=" -DANDROID"
 export LDFLAGS+=" -L$PWD/dummy_libs" 
-
-sudo apt -y install systemtap-sdt-dev libxtst-dev libasound2-dev libelf-dev libfontconfig1-dev libx11-dev libxext-dev libxrandr-dev libxrender-dev libxtst-dev libxt-dev
 
 # Create dummy libraries so we won't have to remove them in OpenJDK makefiles
 mkdir -p dummy_libs
@@ -68,7 +69,6 @@ fi
 #   --with-extra-cflags="$CPPFLAGS" \
 
 bash ./configure \
-    --with-boot-jdk=$BOOT_JDK \
     --openjdk-target=$TARGET \
     --with-extra-cflags="$CFLAGS" \
     --with-extra-cxxflags="$CFLAGS" \
