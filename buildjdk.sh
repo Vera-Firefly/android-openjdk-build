@@ -46,7 +46,7 @@ fi
   ar cru dummy_libs/libpthread.a
   ar cru dummy_libs/librt.a
   ar cru dummy_libs/libthread_db.a
-else
+  
   ln -s -f /opt/X11/include/X11 $ANDROID_INCLUDE/
   ln -sfn $themacsysroot/System/Library/Frameworks/CoreAudio.framework/Headers $ANDROID_INCLUDE/CoreAudio
   ln -sfn $themacsysroot/System/Library/Frameworks/IOKit.framework/Headers $ANDROID_INCLUDE/IOKit
