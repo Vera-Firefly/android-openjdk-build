@@ -12,7 +12,7 @@ else
   export CFLAGS+=" -O3"
 fi
 
-# if [ "$TARGET_JDK" == "aarch32" ] || [ "$TARGET_JDK" == "aarch64" ]
+# if [[ "$TARGET_JDK" == "aarch32" ]] || [[ "$TARGET_JDK" == "aarch64" ]]
 # then
 #   export CFLAGS+=" -march=armv7-a+neon"
 # fi
@@ -23,32 +23,50 @@ fi
 # cp -R /usr/include/X11 $ANDROID_INCLUDE/
 # cp -R /usr/include/fontconfig $ANDROID_INCLUDE/
 
+  chmod +x android-wrapped-clang
+  chmod +x android-wrapped-clang++
+  ln -s -f /usr/include/X11 $ANDROID_INCLUDE/
+  ln -s -f /usr/include/fontconfig $ANDROID_INCLUDE/
+  platform_args="--with-toolchain-type=gcc \
+    --with-freetype-include=$FREETYPE_DIR/include/freetype2 \
+    --with-freetype-lib=$FREETYPE_DIR/lib \
+    --build=x86_64-unknown-linux-gnu \
+    "
+  AUTOCONF_x11arg="--x-includes=$ANDROID_INCLUDE/X11"
+  AUTOCONF_EXTRA_ARGS+="OBJCOPY=$OBJCOPY \
+    AR=$AR \
+    STRIP=$STRIP \
+    "
 
-chmod +x android-wrapped-clang
-chmod +x android-wrapped-clang++
-ln -s -f /usr/include/X11 $ANDROID_INCLUDE/
-ln -s -f /usr/include/fontconfig $ANDROID_INCLUDE/
-platform_args="--with-toolchain-type=gcc \
-  --with-freetype-include=$FREETYPE_DIR/include/freetype2 \
-  --with-freetype-lib=$FREETYPE_DIR/lib \
-  "
-AUTOCONF_x11arg="--x-includes=$ANDROID_INCLUDE/X11"
-AUTOCONF_EXTRA_ARGS+="OBJCOPY=$OBJCOPY \
-  AR=$AR \
-  STRIP=$STRIP \
-  "
-
-export BOOT_JDK=$PWD/jdk-20
-export CFLAGS+=" -DANDROID"
-export LDFLAGS+=" -L$PWD/dummy_libs" 
-
-sudo apt -y install systemtap-sdt-dev libxtst-dev libasound2-dev libelf-dev libfontconfig1-dev libx11-dev libxext-dev libxrandr-dev libxrender-dev libxtst-dev libxt-dev
+  export CFLAGS+=" -DANDROID"
+  export LDFLAGS+=" -L$PWD/dummy_libs" 
 
 # Create dummy libraries so we won't have to remove them in OpenJDK makefiles
-mkdir -p dummy_libs
-ar cru dummy_libs/libpthread.a
-ar cru dummy_libs/librt.a
-ar cru dummy_libs/libthread_db.a
+  mkdir -p dummy_libs
+  ar cru dummy_libs/libpthread.a
+  ar cru dummy_libs/librt.a
+  ar cru dummy_libs/libthread_db.a
+else
+  ln -s -f /opt/X11/include/X11 $ANDROID_INCLUDE/
+  ln -sfn $themacsysroot/System/Library/Frameworks/CoreAudio.framework/Headers $ANDROID_INCLUDE/CoreAudio
+  ln -sfn $themacsysroot/System/Library/Frameworks/IOKit.framework/Headers $ANDROID_INCLUDE/IOKit
+  if [[ "$(uname -p)" == "arm" ]]; then
+    ln -s -f /opt/homebrew/include/fontconfig $ANDROID_INCLUDE/
+  else
+    ln -s -f /usr/local/include/fontconfig $ANDROID_INCLUDE/
+  fi
+  platform_args="--with-toolchain-type=clang --with-sysroot=$(xcrun --sdk iphoneos --show-sdk-path) \
+    --with-boot-jdk=$(/usr/libexec/java_home -v 21) \
+    --with-freetype=bundled \
+    "
+  AUTOCONF_x11arg="--with-x=/opt/X11/include/X11 --prefix=/usr/lib"
+  sameflags="-arch arm64 -DHEADLESS=1 -I$PWD/ios-missing-include -Wno-implicit-function-declaration -DTARGET_OS_OSX"
+  export CFLAGS+=" $sameflags"
+  export LDFLAGS+="-arch arm64"
+  export BUILD_SYSROOT_CFLAGS="-isysroot ${themacsysroot}"
+
+  HOMEBREW_NO_AUTO_UPDATE=1 brew install fontconfig ldid xquartz autoconf
+fi
 
 # fix building libjawt
 ln -s -f $CUPS_DIR/cups $ANDROID_INCLUDE/
@@ -57,15 +75,18 @@ cd openjdk
 
 # Apply patches
 git reset --hard
-git apply --reject --whitespace=fix ../patches/jdk21u_android.diff || echo "git apply failed (Android patch set)"
-
+if [[ "$TARGET_JDK" == "arm" ]] || [[ "$TARGET_JDK" == "x86" ]]; then
+  git apply --reject --whitespace=fix ../patches/jdk17u_android_32.diff || echo "git apply failed (Android patch set)"
+else
+  git apply --reject --whitespace=fix ../patches/jdk17u_android_64.diff || echo "git apply failed (Android patch set)"
+fi
 # rm -rf build
 
 #   --with-extra-cxxflags="$CXXFLAGS -Dchar16_t=uint16_t -Dchar32_t=uint32_t" \
 #   --with-extra-cflags="$CPPFLAGS" \
 
 bash ./configure \
-    --with-boot-jdk=$BOOT_JDK \
+    --with-version-pre=- \
     --openjdk-target=$TARGET \
     --with-extra-cflags="$CFLAGS" \
     --with-extra-cxxflags="$CFLAGS" \
