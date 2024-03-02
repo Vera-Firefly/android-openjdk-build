@@ -76,18 +76,11 @@ cd openjdk
 
 # Apply patches
 git reset --hard
-if [[ "$BUILD_IOS" != "1" ]]; then
-  git apply --reject --whitespace=fix ../patches/jdk21u_android.diff || echo "git apply failed (Android patch set)"
+if [[ "$TARGET_JDK" == "arm" ]] || [[ "$TARGET_JDK" == "x86" ]]; then
+  git apply --reject --whitespace=fix ../patches/jdk17u_android_32.diff || echo "git apply failed (Android patch set)"
 else
-  git apply --reject --whitespace=fix ../patches/jdk21u_ios.diff || echo "git apply failed (iOS patch set)"
-
-  # Hack: exclude building macOS stuff
-  desktop_mac=src/java.desktop/macosx
-  mv ${desktop_mac} ${desktop_mac}_NOTIOS
-  mkdir -p ${desktop_mac}/native
-  mv ${desktop_mac}_NOTIOS/native/libjsound ${desktop_mac}/native/
+  git apply --reject --whitespace=fix ../patches/jdk17u_android_64.diff || echo "git apply failed (Android patch set)"
 fi
-
 # rm -rf build
 
 #   --with-extra-cxxflags="$CXXFLAGS -Dchar16_t=uint16_t -Dchar32_t=uint32_t" \
