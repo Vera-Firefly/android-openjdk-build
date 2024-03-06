@@ -16,7 +16,7 @@ else
   fi
 fi
 
-# if [[ "$TARGET_JDK" == "aarch32" ]] || [[ "$TARGET_JDK" == "aarch64" ]]
+# if [ "$TARGET_JDK" == "aarch32" ] || [ "$TARGET_JDK" == "aarch64" ]
 # then
 #   export CFLAGS+=" -march=armv7-a+neon"
 # fi
@@ -34,11 +34,16 @@ ln -s -f /usr/include/fontconfig $ANDROID_INCLUDE/
 platform_args="--with-toolchain-type=gcc \
   --with-freetype-include=$FREETYPE_DIR/include/freetype2 \
   --with-freetype-lib=$FREETYPE_DIR/lib \
+  --build=x86_64-unknown-linux-gnu \
   "
 AUTOCONF_x11arg="--x-includes=$ANDROID_INCLUDE/X11"
+AUTOCONF_EXTRA_ARGS+="OBJCOPY=$OBJCOPY \
+  AR=$AR \
+  STRIP=$STRIP \
+  "
 
 export CFLAGS+=" -DANDROID"
-export LDFLAGS+=" -L$PWD/dummy_libs"
+export LDFLAGS+=" -L$PWD/dummy_libs" 
 
 # Create dummy libraries so we won't have to remove them in OpenJDK makefiles
 mkdir -p dummy_libs
@@ -54,17 +59,17 @@ cd openjdk
 # Apply patches
 git reset --hard
 if [[ "$TARGET_JDK" == "arm" ]] || [[ "$TARGET_JDK" == "x86" ]]; then
-  git apply --reject --whitespace=fix ../patches/jdk17u_android_32.diff || echo "git apply failed (Android patch set)"
+  git apply --reject --whitespace=fix ../patches/jdk21u_android_32.diff || echo "git apply failed (Android patch set)"
 else
-  git apply --reject --whitespace=fix ../patches/jdk17u_android_64.diff || echo "git apply failed (Android patch set)"
+  git apply --reject --whitespace=fix ../patches/jdk21u_android_64.diff || echo "git apply failed (Android patch set)"
 fi
+
 # rm -rf build
 
 #   --with-extra-cxxflags="$CXXFLAGS -Dchar16_t=uint16_t -Dchar32_t=uint32_t" \
 #   --with-extra-cflags="$CPPFLAGS" \
 
 bash ./configure \
-    --with-version-pre=- \
     --openjdk-target=$TARGET \
     --with-extra-cflags="$CFLAGS" \
     --with-extra-cxxflags="$CFLAGS" \
