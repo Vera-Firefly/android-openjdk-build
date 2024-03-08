@@ -46,9 +46,9 @@ export LDFLAGS+=" -L$PWD/dummy_libs"
 
 # Create dummy libraries so we won't have to remove them in OpenJDK makefiles
 mkdir -p dummy_libs
-ar cru dummy_libs/libpthread.a
-ar cru dummy_libs/librt.a
-ar cru dummy_libs/libthread_db.a
+ar cr dummy_libs/libpthread.a
+ar cr dummy_libs/librt.a
+ar cr dummy_libs/libthread_db.a
 
 # fix building libjawt
 ln -s -f $CUPS_DIR/cups $ANDROID_INCLUDE/
