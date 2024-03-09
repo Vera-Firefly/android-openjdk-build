@@ -1,5 +1,5 @@
 #!/bin/bash
-if [ "$1" = "--version" ]; then
+if [[ "$1" = "--version" ]]; then
   echo "${TARGET}-g++ (GCC) 4.9 20140827 (prerelease)"
   echo "Copyright (C) 2014 Free Software Foundation, Inc."
   echo "This is free software; see the source for copying conditions.  There is NO"
