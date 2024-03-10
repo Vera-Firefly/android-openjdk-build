@@ -1,18 +1,18 @@
 diff --git a/make/autoconf/build-aux/config.sub b/make/autoconf/build-aux/config.sub
-index 8f5a5cf52..34943b6ed 100644
+index 3c280ac7c0..47111c9d8e 100644
 --- a/make/autoconf/build-aux/config.sub
 +++ b/make/autoconf/build-aux/config.sub
-@@ -47,7 +47,8 @@ if echo $* | grep pc-msys >/dev/null ; then
+@@ -41,7 +41,8 @@ if echo $* | grep pc-msys >/dev/null ; then
  fi
  
- # Filter out everything that doesn't begin with "aarch64-"
+ # First, filter out everything that doesn't begin with "aarch64-"
 -if ! echo $* | grep '^aarch64-' >/dev/null ; then
 +# or that ends with "-android"
 +if ! echo $* | egrep "^aarch64-|-android" >/dev/null ; then
      . $DIR/autoconf-config.sub "$@"
      # autoconf-config.sub exits, so we never reach here, but just in
      # case we do:
-@@ -58,6 +59,10 @@ while test $# -gt 0 ; do
+@@ -52,6 +53,10 @@ while test $# -gt 0 ; do
      case $1 in
          -- )   # Stop option processing
              shift; break ;;
@@ -24,50 +24,34 @@ index 8f5a5cf52..34943b6ed 100644
              config=`echo $1 | sed 's/^aarch64-/arm-/'`
              sub_args="$sub_args $config"
 diff --git a/make/autoconf/flags-cflags.m4 b/make/autoconf/flags-cflags.m4
-index 5eed1138f..b4319de67 100644
+index 3c5ba9ccce..094f79484e 100644
 --- a/make/autoconf/flags-cflags.m4
 +++ b/make/autoconf/flags-cflags.m4
-@@ -374,7 +374,8 @@ AC_DEFUN([FLAGS_SETUP_CFLAGS_HELPER],
+@@ -405,7 +405,8 @@ AC_DEFUN([FLAGS_SETUP_CFLAGS_HELPER],
    #### OS DEFINES, these should be independent on toolchain
    if test "x$OPENJDK_TARGET_OS" = xlinux; then
      CFLAGS_OS_DEF_JVM="-DLINUX"
 -    CFLAGS_OS_DEF_JDK="-D_GNU_SOURCE -D_REENTRANT -D_LARGEFILE64_SOURCE"
 +    # CFLAGS_OS_DEF_JDK="-D_GNU_SOURCE -D_REENTRANT -D_LARGEFILE64_SOURCE"
 +    CFLAGS_OS_DEF_JDK="-D_GNU_SOURCE -D_REENTRANT -D_LARGEFILE64_SOURCE -D__USE_BSD"
-   elif test "x$OPENJDK_TARGET_OS" = xmacosx; then
-     CFLAGS_OS_DEF_JVM="-D_ALLBSD_SOURCE -D_DARWIN_C_SOURCE -D_XOPEN_SOURCE"
-     CFLAGS_OS_DEF_JDK="-D_ALLBSD_SOURCE -D_DARWIN_UNLIMITED_SELECT"
-diff --git a/make/autoconf/flags-ldflags.m4 b/make/autoconf/flags-ldflags.m4
-index 23bb33e87..ad0ab88d0 100644
---- a/make/autoconf/flags-ldflags.m4
-+++ b/make/autoconf/flags-ldflags.m4
-@@ -179,7 +179,9 @@ AC_DEFUN([FLAGS_SETUP_LDFLAGS_CPU_DEP],
-        test "x${OPENJDK_$1_CPU}" = xmips64el; then
-       $1_CPU_LDFLAGS="${$1_CPU_LDFLAGS} -Wl,--hash-style=sysv"
-     else
--      $1_CPU_LDFLAGS="${$1_CPU_LDFLAGS} -Wl,--hash-style=gnu"
-+      # Android 5.x does not support GNU hash style
-+      # gnu
-+      $1_CPU_LDFLAGS="${$1_CPU_LDFLAGS} -Wl,--hash-style=sysv"
-     fi
- 
-   elif test "x$TOOLCHAIN_TYPE" = xmicrosoft; then
+   elif test "x$OPENJDK_TARGET_OS" = xsolaris; then
+     CFLAGS_OS_DEF_JVM="-DSOLARIS"
+     CFLAGS_OS_DEF_JDK="-D__solaris__"
 diff --git a/make/autoconf/lib-freetype.m4 b/make/autoconf/lib-freetype.m4
-index 6a7109342..2d74ffc5b 100644
+index 99e9ebe547..8b2c797740 100644
 --- a/make/autoconf/lib-freetype.m4
 +++ b/make/autoconf/lib-freetype.m4
-@@ -103,7 +103,8 @@ AC_DEFUN_ONCE([LIB_SETUP_FREETYPE],
+@@ -106,7 +106,7 @@ AC_DEFUN_ONCE([LIB_SETUP_FREETYPE],
+   fi
+ 
    FREETYPE_TO_USE=bundled
-   if test "x$OPENJDK_TARGET_OS" != "xwindows" && \
-       test "x$OPENJDK_TARGET_OS" != "xmacosx" && \
--      test "x$OPENJDK_TARGET_OS" != "xaix"; then
-+      test "x$OPENJDK_TARGET_OS" != "xaix" && \
-+      test "x$OPENJDK_TARGET_OS" != "xandroid"; then
+-  if (test "x$OPENJDK_TARGET_OS" != "xwindows" && test "x$OPENJDK_TARGET_OS" != "xmacosx"); then
++  if (test "x$OPENJDK_TARGET_OS" != "xwindows" && test "x$OPENJDK_TARGET_OS" != "xmacosx" && test "x$OPENJDK_TARGET_OS" != "xandroid"); then
      FREETYPE_TO_USE=system
    fi
-   if test "x$with_freetype" != "x" ; then
+   if (test "x$with_freetype" != "x"); then
 diff --git a/make/autoconf/libraries.m4 b/make/autoconf/libraries.m4
-index a65d91ee9..961f57db9 100644
+index 16e906bdc6..96807bd08b 100644
 --- a/make/autoconf/libraries.m4
 +++ b/make/autoconf/libraries.m4
 @@ -40,8 +40,8 @@ m4_include([lib-tests.m4])
@@ -79,9 +63,9 @@ index a65d91ee9..961f57db9 100644
 +  if test "x$OPENJDK_TARGET_OS" = xwindows || test "x$OPENJDK_TARGET_OS" = xmacosx || test "x$OPENJDK_TARGET_OS" = xandroid; then
 +    # No X11 support on windows, macosx or android
      NEEDS_LIB_X11=false
-   elif test "x$ENABLE_HEADLESS_ONLY" = xtrue; then
-     # No X11 support needed when building headless only
-@@ -52,8 +52,8 @@ AC_DEFUN_ONCE([LIB_DETERMINE_DEPENDENCIES],
+   else
+     # All other instances need X11, even if building headless only, libawt still
+@@ -50,8 +50,8 @@ AC_DEFUN_ONCE([LIB_DETERMINE_DEPENDENCIES],
    fi
  
    # Check if fontconfig is needed
@@ -93,10 +77,10 @@ index a65d91ee9..961f57db9 100644
    else
      # All other instances need fontconfig, even if building headless only,
 diff --git a/make/autoconf/platform.m4 b/make/autoconf/platform.m4
-index 2dd13d0d5..ea06c46a7 100644
+index 5d1d9efa39..501dfadafd 100644
 --- a/make/autoconf/platform.m4
 +++ b/make/autoconf/platform.m4
-@@ -190,6 +190,10 @@ AC_DEFUN([PLATFORM_EXTRACT_VARS_FROM_OS],
+@@ -178,6 +178,10 @@ AC_DEFUN([PLATFORM_EXTRACT_VARS_FROM_OS],
        VAR_OS=linux
        VAR_OS_TYPE=unix
        ;;
@@ -104,27 +88,27 @@ index 2dd13d0d5..ea06c46a7 100644
 +      VAR_OS=linux
 +      VAR_OS_TYPE=unix
 +      ;;
-     *darwin*)
-       VAR_OS=macosx
+     *solaris*)
+       VAR_OS=solaris
        VAR_OS_TYPE=unix
 diff --git a/make/autoconf/toolchain.m4 b/make/autoconf/toolchain.m4
-index 788958880..5dc9ade78 100644
+index 1bba0eb88e..2dad629047 100644
 --- a/make/autoconf/toolchain.m4
 +++ b/make/autoconf/toolchain.m4
 @@ -35,10 +35,10 @@
  m4_include([toolchain_microsoft.m4])
  
  # All valid toolchains, regardless of platform (used by help.m4)
--VALID_TOOLCHAINS_all="gcc clang xlc microsoft"
-+VALID_TOOLCHAINS_all="clang gcc xlc microsoft"
+-VALID_TOOLCHAINS_all="gcc clang solstudio xlc microsoft"
++VALID_TOOLCHAINS_all="clang gcc solstudio xlc microsoft"
  
  # These toolchains are valid on different platforms
 -VALID_TOOLCHAINS_linux="gcc clang"
 +VALID_TOOLCHAINS_linux="clang gcc"
+ VALID_TOOLCHAINS_solaris="solstudio"
  VALID_TOOLCHAINS_macosx="gcc clang"
  VALID_TOOLCHAINS_aix="xlc"
- VALID_TOOLCHAINS_windows="microsoft"
-@@ -899,8 +899,8 @@ AC_DEFUN_ONCE([TOOLCHAIN_SETUP_BUILD_COMPILERS],
+@@ -963,8 +963,8 @@ AC_DEFUN_ONCE([TOOLCHAIN_SETUP_BUILD_COMPILERS],
          UTIL_REQUIRE_PROGS(BUILD_CC, clang cc gcc)
          UTIL_REQUIRE_PROGS(BUILD_CXX, clang++ CC g++)
        else
@@ -135,13 +119,13 @@ index 788958880..5dc9ade78 100644
        fi
        UTIL_LOOKUP_PROGS(BUILD_NM, nm gcc-nm)
        UTIL_LOOKUP_PROGS(BUILD_AR, ar gcc-ar lib)
-@@ -915,11 +915,14 @@ AC_DEFUN_ONCE([TOOLCHAIN_SETUP_BUILD_COMPILERS],
+@@ -979,11 +979,14 @@ AC_DEFUN_ONCE([TOOLCHAIN_SETUP_BUILD_COMPILERS],
  
      PATH="$OLDPATH"
  
 -    TOOLCHAIN_EXTRACT_COMPILER_VERSION(BUILD_CC, [BuildC])
 -    TOOLCHAIN_EXTRACT_COMPILER_VERSION(BUILD_CXX, [BuildC++])
--    TOOLCHAIN_PREPARE_FOR_VERSION_COMPARISONS([BUILD_], [OPENJDK_BUILD_], [build ])
+-    TOOLCHAIN_PREPARE_FOR_VERSION_COMPARISONS([BUILD_], [OPENJDK_BUILD_])
 -    TOOLCHAIN_EXTRACT_LD_VERSION(BUILD_LD, [build linker])
 -    TOOLCHAIN_PREPARE_FOR_LD_VERSION_COMPARISONS([BUILD_], [OPENJDK_BUILD_])
 +    # xandroid
@@ -156,7 +140,7 @@ index 788958880..5dc9ade78 100644
      # If we are not cross compiling, use the normal target compilers for
      # building the build platform executables.
 diff --git a/make/common/JdkNativeCompilation.gmk b/make/common/JdkNativeCompilation.gmk
-index 6a963ac2c..349ff126b 100644
+index b86df0f8ba..9958293663 100644
 --- a/make/common/JdkNativeCompilation.gmk
 +++ b/make/common/JdkNativeCompilation.gmk
 @@ -41,6 +41,12 @@ FindSrcDirsForLib += \
@@ -173,25 +157,25 @@ index 6a963ac2c..349ff126b 100644
    $(call uniq, $(wildcard \
        $(TOPDIR)/src/$(strip $1)/$(OPENJDK_TARGET_OS)/native/$(strip $2) \
 diff --git a/make/common/Modules.gmk b/make/common/Modules.gmk
-index 0eb0fb2dd..e0431de0b 100644
+index 95dc2d55b6..2aea785a8d 100644
 --- a/make/common/Modules.gmk
 +++ b/make/common/Modules.gmk
-@@ -83,6 +83,10 @@ GENERATED_SRC_DIRS += \
- TOP_SRC_DIRS += \
+@@ -241,6 +241,10 @@ TOP_SRC_DIRS += \
      $(TOPDIR)/src \
      #
+ 
 +ifeq ($(OPENJDK_TARGET_OS), android)
 +  SRC_SUBDIRS += linux/classes
 +endif
 +
- 
  SRC_SUBDIRS += $(OPENJDK_TARGET_OS)/classes
  ifneq ($(OPENJDK_TARGET_OS), $(OPENJDK_TARGET_OS_TYPE))
+   SRC_SUBDIRS += $(OPENJDK_TARGET_OS_TYPE)/classes
 diff --git a/make/common/Utils.gmk b/make/common/Utils.gmk
-index a7df32065..0eaa1ec40 100644
+index acb6a30313..b399556b1f 100644
 --- a/make/common/Utils.gmk
 +++ b/make/common/Utils.gmk
-@@ -307,6 +307,12 @@ check-jvm-variant = \
+@@ -299,6 +299,12 @@ check-jvm-variant = \
  isTargetOs = \
    $(strip $(if $(filter $(OPENJDK_TARGET_OS), $1), true, false))
  
@@ -205,10 +189,10 @@ index a7df32065..0eaa1ec40 100644
    $(strip $(if $(filter $(OPENJDK_TARGET_OS_TYPE), $1), true, false))
  
 diff --git a/make/hotspot/lib/JvmMapfile.gmk b/make/hotspot/lib/JvmMapfile.gmk
-index 5cba93178..181e0db5c 100644
+index ba44e57983..6c5b02343f 100644
 --- a/make/hotspot/lib/JvmMapfile.gmk
 +++ b/make/hotspot/lib/JvmMapfile.gmk
-@@ -52,7 +52,7 @@ endif
+@@ -64,7 +64,7 @@ endif
  # Create a dynamic list of symbols from the built object files. This is highly
  # platform dependent.
  
@@ -218,10 +202,19 @@ index 5cba93178..181e0db5c 100644
    ifneq ($(FILTER_SYMBOLS_PATTERN), )
      FILTER_SYMBOLS_PATTERN := $(FILTER_SYMBOLS_PATTERN)|
 diff --git a/make/hotspot/lib/JvmOverrideFiles.gmk b/make/hotspot/lib/JvmOverrideFiles.gmk
-index a9f8a0e54..c2fd95850 100644
+index ed961352e1..1160e595d3 100644
 --- a/make/hotspot/lib/JvmOverrideFiles.gmk
 +++ b/make/hotspot/lib/JvmOverrideFiles.gmk
-@@ -65,7 +65,8 @@ ifeq ($(call isTargetOs, linux), true)
+@@ -31,8 +31,6 @@ $(eval $(call IncludeCustomExtension, hotspot/lib/JvmOverrideFiles.gmk))
+ 
+ ifeq ($(TOOLCHAIN_TYPE), gcc)
+   BUILD_LIBJVM_vmStructs.cpp_CXXFLAGS := -fno-var-tracking-assignments
+-  BUILD_LIBJVM_jvmciCompilerToVM.cpp_CXXFLAGS := -fno-var-tracking-assignments
+-  BUILD_LIBJVM_jvmciCompilerToVMInit.cpp_CXXFLAGS := -fno-var-tracking-assignments
+   BUILD_LIBJVM_assembler_x86.cpp_CXXFLAGS := -Wno-maybe-uninitialized
+   BUILD_LIBJVM_cardTableBarrierSetAssembler_x86.cpp_CXXFLAGS := -Wno-maybe-uninitialized
+   BUILD_LIBJVM_interp_masm_x86.cpp_CXXFLAGS := -Wno-uninitialized
+@@ -64,7 +62,8 @@ ifeq ($(call isTargetOs, linux), true)
  	#
    endif
  
@@ -231,11 +224,33 @@ index a9f8a0e54..c2fd95850 100644
      # Performance measurements show that by compiling GC related code, we could
      # significantly reduce the GC pause time on 32 bit Linux/Unix platforms by
      # compiling without the PIC flag (-fPIC on linux).
-diff --git a/make/modules/java.base/lib/CoreLibraries.gmk b/make/modules/java.base/lib/CoreLibraries.gmk
-index 1d5fede2a..37624ce84 100644
---- a/make/modules/java.base/lib/CoreLibraries.gmk
-+++ b/make/modules/java.base/lib/CoreLibraries.gmk
-@@ -112,6 +112,10 @@ $(eval $(call SetupJdkLibrary, BUILD_LIBJAVA, \
+diff --git a/make/lib/Awt2dLibraries.gmk b/make/lib/Awt2dLibraries.gmk
+index 73bb932519..a08814d823 100644
+--- a/make/lib/Awt2dLibraries.gmk
++++ b/make/lib/Awt2dLibraries.gmk
+@@ -663,7 +663,7 @@ $(eval $(call SetupJdkLibrary, BUILD_LIBFONTMANAGER, \
+     LDFLAGS_unix := -L$(INSTALL_LIBRARIES_HERE), \
+     LDFLAGS_aix := -Wl$(COMMA)-berok, \
+     LIBS := $(BUILD_LIBFONTMANAGER_FONTLIB), \
+-    LIBS_unix := -lawt -ljava -ljvm $(LIBM) $(LIBCXX), \
++    LIBS_unix := -lawt -lawt_headless -ljava -ljvm $(LIBM) $(LIBCXX), \
+     LIBS_macosx := -lawt_lwawt -framework CoreText -framework CoreFoundation -framework CoreGraphics, \
+     LIBS_windows := $(WIN_JAVA_LIB) advapi32.lib user32.lib gdi32.lib \
+         $(WIN_AWT_LIB), \
+@@ -906,7 +906,7 @@ ifeq ($(ENABLE_HEADLESS_ONLY), false)
+       LIBS_aix := -liconv, \
+   ))
+ 
+-  TARGETS += $(BUILD_LIBSPLASHSCREEN)
++  # TARGETS += $(BUILD_LIBSPLASHSCREEN)
+ 
+   ifeq ($(call isTargetOs, macosx), true)
+     $(BUILD_LIBSPLASHSCREEN): $(call FindLib, $(MODULE), osxapp)
+diff --git a/make/lib/CoreLibraries.gmk b/make/lib/CoreLibraries.gmk
+index 6b6b5cca7f..38b32bfdf9 100644
+--- a/make/lib/CoreLibraries.gmk
++++ b/make/lib/CoreLibraries.gmk
+@@ -126,6 +126,10 @@ $(eval $(call SetupJdkLibrary, BUILD_LIBJAVA, \
  
  TARGETS += $(BUILD_LIBJAVA)
  
@@ -246,11 +261,11 @@ index 1d5fede2a..37624ce84 100644
  $(BUILD_LIBJAVA): $(BUILD_LIBVERIFY)
  
  $(BUILD_LIBJAVA): $(BUILD_LIBFDLIBM)
-diff --git a/make/modules/java.desktop/Lib.gmk b/make/modules/java.desktop/Lib.gmk
-index 22b07289a..7281c96b9 100644
---- a/make/modules/java.desktop/Lib.gmk
-+++ b/make/modules/java.desktop/Lib.gmk
-@@ -76,7 +76,7 @@ ifeq ($(call isTargetOs, aix), false)
+diff --git a/make/lib/Lib-java.desktop.gmk b/make/lib/Lib-java.desktop.gmk
+index 25c328689f..4fb3b8c1a6 100644
+--- a/make/lib/Lib-java.desktop.gmk
++++ b/make/lib/Lib-java.desktop.gmk
+@@ -78,7 +78,7 @@ ifeq ($(call isTargetOs, aix), false)
  
    $(BUILD_LIBJSOUND): $(call FindLib, java.base, java)
  
@@ -259,33 +274,11 @@ index 22b07289a..7281c96b9 100644
  
  endif
  
-diff --git a/make/modules/java.desktop/lib/Awt2dLibraries.gmk b/make/modules/java.desktop/lib/Awt2dLibraries.gmk
-index 4d0c0c00d..0bd1b5063 100644
---- a/make/modules/java.desktop/lib/Awt2dLibraries.gmk
-+++ b/make/modules/java.desktop/lib/Awt2dLibraries.gmk
-@@ -527,7 +527,7 @@ $(eval $(call SetupJdkLibrary, BUILD_LIBFONTMANAGER, \
-     LDFLAGS_unix := -L$(INSTALL_LIBRARIES_HERE), \
-     LDFLAGS_aix := -Wl$(COMMA)-berok, \
-     LIBS := $(BUILD_LIBFONTMANAGER_FONTLIB), \
--    LIBS_unix := -lawt -ljava -ljvm $(LIBM) $(LIBCXX), \
-+    LIBS_unix := -lawt -lawt_headless -ljava -ljvm $(LIBM) $(LIBCXX), \
-     LIBS_macosx := -lawt_lwawt -framework CoreText -framework CoreFoundation -framework CoreGraphics, \
-     LIBS_windows := $(WIN_JAVA_LIB) advapi32.lib user32.lib gdi32.lib \
-         $(WIN_AWT_LIB), \
-@@ -753,7 +753,7 @@ ifeq ($(ENABLE_HEADLESS_ONLY), false)
-       LIBS_aix := -liconv, \
-   ))
- 
--  TARGETS += $(BUILD_LIBSPLASHSCREEN)
-+  # TARGETS += $(BUILD_LIBSPLASHSCREEN)
- 
-   ifeq ($(call isTargetOs, macosx), true)
-     $(BUILD_LIBSPLASHSCREEN): $(call FindLib, $(MODULE), osxapp)
-diff --git a/make/modules/java.instrument/Lib.gmk b/make/modules/java.instrument/Lib.gmk
-index 3996ad213..bba075e69 100644
---- a/make/modules/java.instrument/Lib.gmk
-+++ b/make/modules/java.instrument/Lib.gmk
-@@ -36,9 +36,11 @@ endif
+diff --git a/make/lib/Lib-java.instrument.gmk b/make/lib/Lib-java.instrument.gmk
+index d5e0400e74..466bf4aaff 100644
+--- a/make/lib/Lib-java.instrument.gmk
++++ b/make/lib/Lib-java.instrument.gmk
+@@ -39,9 +39,11 @@ endif
  $(eval $(call SetupJdkLibrary, BUILD_LIBINSTRUMENT, \
      NAME := instrument, \
      OPTIMIZATION := LOW, \
@@ -294,33 +287,43 @@ index 3996ad213..bba075e69 100644
      CFLAGS_debug := -DJPLIS_LOGGING, \
      CFLAGS_release := -DNO_JPLIS_LOGGING, \
 +    CXXFLAGS := $(CXXFLAGS_JDKLIB), \
-     DISABLED_WARNINGS_gcc := unused-function, \
      EXTRA_HEADER_DIRS := java.base:libjli, \
      LDFLAGS := $(LDFLAGS_JDKLIB) \
-diff --git a/make/modules/jdk.hotspot.agent/Lib.gmk b/make/modules/jdk.hotspot.agent/Lib.gmk
-index 59b24d0e4..d35dbfd17 100644
---- a/make/modules/jdk.hotspot.agent/Lib.gmk
-+++ b/make/modules/jdk.hotspot.agent/Lib.gmk
-@@ -74,6 +74,6 @@ $(eval $(call SetupJdkLibrary, BUILD_LIBSA, \
-     LIBS_windows := dbgeng.lib $(WIN_JAVA_LIB), \
+         $(call SET_SHARED_LIBRARY_ORIGIN) \
+diff --git a/make/lib/Lib-jdk.crypto.ec.gmk b/make/lib/Lib-jdk.crypto.ec.gmk
+index dfecc1d3cb..516dddfb8b 100644
+--- a/make/lib/Lib-jdk.crypto.ec.gmk
++++ b/make/lib/Lib-jdk.crypto.ec.gmk
+@@ -47,7 +47,7 @@ ifeq ($(ENABLE_INTREE_EC), true)
+       CXXFLAGS := $(BUILD_LIBSUNEC_CXXFLAGS_JDKLIB), \
+       DISABLED_WARNINGS_gcc := sign-compare implicit-fallthrough, \
+       DISABLED_WARNINGS_microsoft := 4101 4244 4146 4018, \
+-      LDFLAGS := $(LDFLAGS_JDKLIB) $(LDFLAGS_CXX_JDK), \
++      LDFLAGS := -ldl $(LDFLAGS_JDKLIB) $(LDFLAGS_CXX_JDK), \
+       LDFLAGS_macosx := $(call SET_SHARED_LIBRARY_ORIGIN), \
+       LIBS := $(LIBCXX), \
+   ))
+diff --git a/make/lib/Lib-jdk.hotspot.agent.gmk b/make/lib/Lib-jdk.hotspot.agent.gmk
+index 07bd7d7427..813bf22abb 100644
+--- a/make/lib/Lib-jdk.hotspot.agent.gmk
++++ b/make/lib/Lib-jdk.hotspot.agent.gmk
+@@ -72,6 +72,6 @@ $(eval $(call SetupJdkLibrary, BUILD_LIBSA, \
+     LIBS_windows := dbgeng.lib, \
  ))
  
 -TARGETS += $(BUILD_LIBSA)
 +# TARGETS += $(BUILD_LIBSA)
  
  ################################################################################
-diff --git a/make/modules/jdk.jdwp.agent/Lib.gmk b/make/modules/jdk.jdwp.agent/Lib.gmk
-index aef358c14..7b9e5097c 100644
---- a/make/modules/jdk.jdwp.agent/Lib.gmk
-+++ b/make/modules/jdk.jdwp.agent/Lib.gmk
-@@ -52,12 +52,14 @@ $(eval $(call SetupJdkLibrary, BUILD_LIBJDWP, \
+diff --git a/make/lib/Lib-jdk.jdwp.agent.gmk b/make/lib/Lib-jdk.jdwp.agent.gmk
+index f00f0760fb..23af58ca5d 100644
+--- a/make/lib/Lib-jdk.jdwp.agent.gmk
++++ b/make/lib/Lib-jdk.jdwp.agent.gmk
+@@ -54,9 +54,11 @@ $(eval $(call SetupJdkLibrary, BUILD_LIBJDWP, \
      NAME := jdwp, \
      OPTIMIZATION := LOW, \
      CFLAGS := $(CFLAGS_JDKLIB) -DJDWP_LOGGING, \
 +    CXXFLAGS := $(CXXFLAGS_JDKLIB), \
-     DISABLED_WARNINGS_gcc := unused-function, \
-     DISABLED_WARNINGS_clang := sometimes-uninitialized format-nonliteral \
-         self-assign, \
      EXTRA_HEADER_DIRS := \
        include \
        libjdwp/export, \
@@ -328,25 +331,38 @@ index aef358c14..7b9e5097c 100644
      LDFLAGS := $(LDFLAGS_JDKLIB) \
          $(call SET_SHARED_LIBRARY_ORIGIN), \
      LIBS := $(JDKLIB_LIBS), \
-diff --git a/make/modules/jdk.net/Lib.gmk b/make/modules/jdk.net/Lib.gmk
-index 3c9d1055f..e4260da69 100644
---- a/make/modules/jdk.net/Lib.gmk
-+++ b/make/modules/jdk.net/Lib.gmk
+diff --git a/make/lib/Lib-jdk.net.gmk b/make/lib/Lib-jdk.net.gmk
+index 7e82801895..26700aef48 100644
+--- a/make/lib/Lib-jdk.net.gmk
++++ b/make/lib/Lib-jdk.net.gmk
 @@ -27,7 +27,7 @@ include LibCommon.gmk
  
  ################################################################################
  
--ifeq ($(call isTargetOs, linux macosx), true)
-+ifeq ($(call isTargetOs, linux macosx android), true)
+-ifeq ($(call isTargetOs, solaris linux macosx), true)
++ifeq ($(call isTargetOs, solaris linux macosx android), true)
  
    $(eval $(call SetupJdkLibrary, BUILD_LIBEXTNET, \
        NAME := extnet, \
+diff --git a/make/lib/Lib-jdk.pack.gmk b/make/lib/Lib-jdk.pack.gmk
+index f401e03e7c..110bdb18bf 100644
+--- a/make/lib/Lib-jdk.pack.gmk
++++ b/make/lib/Lib-jdk.pack.gmk
+@@ -37,7 +37,7 @@ $(eval $(call SetupJdkLibrary, BUILD_LIBUNPACK, \
+     CFLAGS_release := -DPRODUCT, \
+     EXTRA_HEADER_DIRS := $(call GetJavaHeaderDir, java.base), \
+     DISABLED_WARNINGS_gcc := implicit-fallthrough, \
+-    LDFLAGS := $(LDFLAGS_JDKLIB) $(LDFLAGS_CXX_JDK) \
++    LDFLAGS := -ldl $(LDFLAGS_JDKLIB) $(LDFLAGS_CXX_JDK) \
+         $(call SET_SHARED_LIBRARY_ORIGIN), \
+     LDFLAGS_windows := -map:$(SUPPORT_OUTPUTDIR)/native/$(MODULE)/unpack.map -debug, \
+     LIBS_unix := -ljvm $(LIBCXX) -ljava, \
 diff --git a/src/hotspot/cpu/arm/icache_arm.cpp b/src/hotspot/cpu/arm/icache_arm.cpp
-index 61fcb8a35..93d2ad4f4 100644
+index ae163619fd..a3be3f9997 100644
 --- a/src/hotspot/cpu/arm/icache_arm.cpp
 +++ b/src/hotspot/cpu/arm/icache_arm.cpp
-@@ -31,7 +31,7 @@
- 
+@@ -67,7 +67,7 @@ static int icache_flush(address addr, int lines, int magic) {
+ #else
  
  static int icache_flush(address addr, int lines, int magic) {
 -  __builtin___clear_cache(addr, addr + (lines << ICache::log2_line_size));
@@ -355,10 +371,10 @@ index 61fcb8a35..93d2ad4f4 100644
  }
  
 diff --git a/src/hotspot/os/linux/os_linux.cpp b/src/hotspot/os/linux/os_linux.cpp
-index ae0c73dcb..e2c9a21f7 100644
+index 0af357ea56..f53da3ca20 100644
 --- a/src/hotspot/os/linux/os_linux.cpp
 +++ b/src/hotspot/os/linux/os_linux.cpp
-@@ -132,7 +132,7 @@
+@@ -133,7 +133,7 @@
  // for timer info max values which include all bits
  #define ALL_64_BITS CONST64(0xFFFFFFFFFFFFFFFF)
  
@@ -367,20 +383,20 @@ index ae0c73dcb..e2c9a21f7 100644
  // dlvsym is not a part of POSIX
  // and musl libc doesn't implement it.
  static void *dlvsym(void *handle,
-@@ -182,6 +182,8 @@ static int clock_tics_per_sec = 100;
+@@ -185,6 +185,8 @@ static int clock_tics_per_sec = 100;
  // avoid this
  static bool suppress_primordial_thread_resolution = false;
  
 +static bool read_so_path_from_maps(const char* so_name, char* buf, int buflen);
 +
- // utility functions
- 
- julong os::available_memory() {
-@@ -322,11 +324,11 @@ bool os::have_special_privileges() {
+ // For diagnostics to print a message once. see run_periodic_checks
+ static sigset_t check_signal_done;
+ static bool check_signals = true;
+@@ -332,11 +334,11 @@ bool os::have_special_privileges() {
  
  
  #ifndef SYS_gettid
--// i386: 224, ia64: 1105, amd64: 186, sparc: 143
+-// i386: 224, ia64: 1105, amd64: 186, sparc 143
 +// i386 & arm: 224, ia64: 1105, amd64: 186, sparc: 143, aarch64: 178
    #ifdef __ia64__
      #define SYS_gettid 1105
@@ -390,7 +406,7 @@ index ae0c73dcb..e2c9a21f7 100644
        #define SYS_gettid 224
      #else
        #ifdef __amd64__
-@@ -334,6 +336,8 @@ bool os::have_special_privileges() {
+@@ -344,6 +346,8 @@ bool os::have_special_privileges() {
        #else
          #ifdef __sparc__
            #define SYS_gettid 143
@@ -399,7 +415,7 @@ index ae0c73dcb..e2c9a21f7 100644
          #else
            #error define gettid for the arch
          #endif
-@@ -515,6 +519,7 @@ extern "C" void breakpoint() {
+@@ -623,6 +627,7 @@ void os::Linux::hotspot_sigmask(Thread* thread) {
  // detecting pthread library
  
  void os::Linux::libpthread_init() {
@@ -407,7 +423,7 @@ index ae0c73dcb..e2c9a21f7 100644
    // Save glibc and pthread version strings.
  #if !defined(_CS_GNU_LIBC_VERSION) || \
      !defined(_CS_GNU_LIBPTHREAD_VERSION)
-@@ -539,6 +544,9 @@ void os::Linux::libpthread_init() {
+@@ -647,6 +652,9 @@ void os::Linux::libpthread_init() {
    confstr(_CS_GNU_LIBPTHREAD_VERSION, str, n);
    os::Linux::set_libpthread_version(str);
  #endif
@@ -417,7 +433,19 @@ index ae0c73dcb..e2c9a21f7 100644
  }
  
  /////////////////////////////////////////////////////////////////////////////
-@@ -1374,7 +1382,13 @@ const char* os::dll_file_extension() { return ".so"; }
+@@ -1469,9 +1477,9 @@ void os::javaTimeSystemUTC(jlong &seconds, jlong &nanos) {
+ void os::Linux::clock_init() {
+   // we do dlopen's in this particular order due to bug in linux
+   // dynamical loader (see 6348968) leading to crash on exit
+-  void* handle = dlopen("librt.so.1", RTLD_LAZY);
++  void* handle = dlopen("libc.so.6", RTLD_LAZY);
+   if (handle == NULL) {
+-    handle = dlopen("librt.so", RTLD_LAZY);
++    handle = dlopen("libc.so", RTLD_LAZY);
+   }
+ 
+   if (handle) {
+@@ -1695,7 +1703,13 @@ const char* os::dll_file_extension() { return ".so"; }
  
  // This must be hard coded because it's the system's temporary
  // directory not the java application's temp directory, ala java.io.tmpdir.
@@ -432,7 +460,7 @@ index ae0c73dcb..e2c9a21f7 100644
  
  static bool file_exists(const char* filename) {
    struct stat statbuf;
-@@ -1517,6 +1531,30 @@ bool os::dll_address_to_library_name(address addr, char* buf,
+@@ -1838,6 +1852,30 @@ bool os::dll_address_to_library_name(address addr, char* buf,
    return false;
  }
  
@@ -463,25 +491,7 @@ index ae0c73dcb..e2c9a21f7 100644
  // Loads .dll/.so and
  // in case of error it checks if .dll/.so was built for the
  // same architecture as Hotspot is running on
-@@ -1863,6 +1901,7 @@ void * os::Linux::dll_load_in_vmthread(const char *filename, char *ebuf,
- }
-
- const char* os::Linux::dll_path(void* lib) {
-+#ifdef RTLD_DI_LINKMAP
-   struct link_map *lmap;
-   const char* l_path = NULL;
-   assert(lib != NULL, "dll_path parameter must not be NULL");
-@@ -1872,6 +1911,9 @@ const char* os::Linux::dll_path(void* lib) {
-     l_path = lmap->l_name;
-   }
-   return l_path;
-+#else
-+  return NULL;
-+#endif
- }
-
- static bool _print_ascii_file(const char* filename, outputStream* st, const char* hdr = NULL) {
-@@ -2538,6 +2576,19 @@ void os::jvm_path(char *buf, jint buflen) {
+@@ -2891,6 +2929,19 @@ void os::jvm_path(char *buf, jint buflen) {
                                           CAST_FROM_FN_PTR(address, os::jvm_path),
                                           dli_fname, sizeof(dli_fname), NULL);
    assert(ret, "cannot locate libjvm");
@@ -501,7 +511,7 @@ index ae0c73dcb..e2c9a21f7 100644
    char *rp = NULL;
    if (ret && dli_fname[0] != '\0') {
      rp = os::Posix::realpath(dli_fname, buf, buflen);
-@@ -2603,6 +2654,7 @@ void os::jvm_path(char *buf, jint buflen) {
+@@ -2956,6 +3007,7 @@ void os::jvm_path(char *buf, jint buflen) {
        }
      }
    }
@@ -509,7 +519,7 @@ index ae0c73dcb..e2c9a21f7 100644
  
    strncpy(saved_jvm_path, buf, MAXPATHLEN);
    saved_jvm_path[MAXPATHLEN - 1] = '\0';
-@@ -2937,7 +2989,8 @@ void os::Linux::sched_getcpu_init() {
+@@ -3409,7 +3461,8 @@ void os::Linux::sched_getcpu_init() {
    }
  
    if (sched_getcpu() == -1) {
@@ -519,26 +529,7 @@ index ae0c73dcb..e2c9a21f7 100644
    }
  }
  
-@@ -3554,6 +3607,7 @@ bool os::Linux::hugetlbfs_sanity_check(bool warn, size_t page_size) {
- }
- 
- bool os::Linux::shm_hugetlbfs_sanity_check(bool warn, size_t page_size) {
-+#ifndef __ANDROID__
-   // Try to create a large shared memory segment.
-   int shmid = shmget(IPC_PRIVATE, page_size, SHM_HUGETLB|IPC_CREAT|SHM_R|SHM_W);
-   if (shmid == -1) {
-@@ -3575,6 +3629,10 @@ bool os::Linux::shm_hugetlbfs_sanity_check(bool warn, size_t page_size) {
-   // Managed to create a segment, now delete it.
-   shmctl(shmid, IPC_RMID, NULL);
-   return true;
-+#else
-+  warning("UseSHM not supported on this platform");
-+  return false;
-+#endif
- }
- 
- // From the coredump_filter documentation:
-@@ -3838,6 +3896,8 @@ void os::large_page_init() {
+@@ -4178,6 +4231,8 @@ void os::large_page_init() {
    #define SHM_HUGETLB 04000
  #endif
  
@@ -547,7 +538,7 @@ index ae0c73dcb..e2c9a21f7 100644
  #define shm_warning_format(format, ...)              \
    do {                                               \
      if (UseLargePages &&                             \
-@@ -3930,8 +3990,11 @@ static char* shmat_large_pages(int shmid, size_t bytes, size_t alignment, char*
+@@ -4270,8 +4325,11 @@ static char* shmat_large_pages(int shmid, size_t bytes, size_t alignment, char*
    }
  }
  
@@ -559,7 +550,7 @@ index ae0c73dcb..e2c9a21f7 100644
    // "exec" is passed in but not used.  Creating the shared image for
    // the code cache doesn't have an SHM_X executable permission to check.
    assert(UseLargePages && UseSHM, "only for SHM large pages");
-@@ -3976,6 +4039,10 @@ char* os::Linux::reserve_memory_special_shm(size_t bytes, size_t alignment,
+@@ -4314,6 +4372,10 @@ char* os::Linux::reserve_memory_special_shm(size_t bytes, size_t alignment,
    shmctl(shmid, IPC_RMID, NULL);
  
    return addr;
@@ -569,8 +560,8 @@ index ae0c73dcb..e2c9a21f7 100644
 +#endif // !__ANDROID__
  }
  
- static void warn_on_commit_special_failure(char* req_addr, size_t bytes,
-@@ -4111,8 +4178,13 @@ char* os::pd_reserve_memory_special(size_t bytes, size_t alignment, size_t page_
+ static void warn_on_large_pages_failure(char* req_addr, size_t bytes,
+@@ -4487,8 +4549,13 @@ char* os::reserve_memory_special(size_t bytes, size_t alignment,
  }
  
  bool os::Linux::release_memory_special_shm(char* base, size_t bytes) {
@@ -584,7 +575,7 @@ index ae0c73dcb..e2c9a21f7 100644
  }
  
  bool os::Linux::release_memory_special_huge_tlbfs(char* base, size_t bytes) {
-@@ -5181,7 +5253,46 @@ bool os::is_thread_cpu_time_supported() {
+@@ -6288,7 +6355,46 @@ bool os::is_thread_cpu_time_supported() {
  // Linux doesn't yet have a (official) notion of processor sets,
  // so just return the system wide load average.
  int os::loadavg(double loadavg[], int nelem) {
@@ -632,7 +623,7 @@ index ae0c73dcb..e2c9a21f7 100644
  
  void os::pause() {
 diff --git a/src/hotspot/os/linux/os_perf_linux.cpp b/src/hotspot/os/linux/os_perf_linux.cpp
-index 7c42379a0..5b76b3f42 100644
+index 83dc3c9e92..bdab9afe03 100644
 --- a/src/hotspot/os/linux/os_perf_linux.cpp
 +++ b/src/hotspot/os/linux/os_perf_linux.cpp
 @@ -45,9 +45,312 @@
@@ -948,21 +939,43 @@ index 7c42379a0..5b76b3f42 100644
  /**
     /proc/[number]/stat
                Status information about the process.  This is used by ps(1).  It is defined in /usr/src/linux/fs/proc/array.c.
+diff --git a/src/hotspot/os/linux/perfMemory_linux.cpp b/src/hotspot/os/linux/perfMemory_linux.cpp
+index b3f637811f..4a243f4f5b 100644
+--- a/src/hotspot/os/linux/perfMemory_linux.cpp
++++ b/src/hotspot/os/linux/perfMemory_linux.cpp
+@@ -149,7 +149,7 @@ static void save_memory_to_file(char* addr, size_t size) {
+ static char* get_user_tmp_dir(const char* user, int vmid, int nspid) {
+   char buffer[TMP_BUFFER_LEN];
+   char* tmpdir = (char *)os::get_temp_directory();
+-  assert(strlen(tmpdir) == 4, "No longer using /tmp - update buffer size");
++  // assert(strlen(tmpdir) == 4, "No longer using /tmp - update buffer size");
+ 
+   if (nspid != -1) {
+     jio_snprintf(buffer, TMP_BUFFER_LEN, "/proc/%d/root%s", vmid, tmpdir);
+@@ -526,7 +526,7 @@ static char* get_user_name_slow(int vmid, int nspid, TRAPS) {
+   char buffer[MAXPATHLEN + 1];
+   int searchpid;
+   char* tmpdirname = (char *)os::get_temp_directory();
+-  assert(strlen(tmpdirname) == 4, "No longer using /tmp - update buffer size");
++  // assert(strlen(tmpdirname) == 4, "No longer using /tmp - update buffer size");
+ 
+   if (nspid == -1) {
+     searchpid = vmid;
 diff --git a/src/hotspot/os/posix/os_posix.cpp b/src/hotspot/os/posix/os_posix.cpp
-index ae058dd34..ea99a3755 100644
+index 94beefe018..53a7d35931 100644
 --- a/src/hotspot/os/posix/os_posix.cpp
 +++ b/src/hotspot/os/posix/os_posix.cpp
-@@ -65,7 +65,9 @@
- #include <sys/wait.h>
+@@ -46,7 +46,9 @@
+ #include <sys/utsname.h>
  #include <time.h>
  #include <unistd.h>
 +#ifndef __ANDROID__
  #include <utmpx.h>
 +#endif
  
- #ifdef __APPLE__
-   #include <crt_externs.h>
-@@ -418,6 +420,7 @@ void os::Posix::print_load_average(outputStream* st) {
+ // Todo: provide a os::get_max_process_id() or similar. Number of processes
+ // may have been configured, can be read more accurately from proc fs etc.
+@@ -377,6 +379,7 @@ void os::Posix::print_load_average(outputStream* st) {
  // unfortunately it does not work on macOS and Linux because the utx chain has no entry
  // for reboot at least on my test machines
  void os::Posix::print_uptime_info(outputStream* st) {
@@ -970,7 +983,7 @@ index ae058dd34..ea99a3755 100644
    int bootsec = -1;
    int currsec = time(NULL);
    struct utmpx* ent;
-@@ -432,6 +435,7 @@ void os::Posix::print_uptime_info(outputStream* st) {
+@@ -391,6 +394,7 @@ void os::Posix::print_uptime_info(outputStream* st) {
    if (bootsec != -1) {
      os::print_dhm(st, "OS uptime:", (long) (currsec-bootsec));
    }
@@ -978,28 +991,43 @@ index ae058dd34..ea99a3755 100644
  }
  
  static void print_rlimit(outputStream* st, const char* msg,
-diff --git a/src/hotspot/os_cpu/linux_aarch64/threadLS_linux_aarch64.S b/src/hotspot/os_cpu/linux_aarch64/threadLS_linux_aarch64.S
-index f541844b9..dd83b3723 100644
---- a/src/hotspot/os_cpu/linux_aarch64/threadLS_linux_aarch64.S
-+++ b/src/hotspot/os_cpu/linux_aarch64/threadLS_linux_aarch64.S
-@@ -19,6 +19,7 @@
+diff --git a/src/hotspot/os_cpu/linux_aarch64/threadLS_linux_aarch64.s b/src/hotspot/os_cpu/linux_aarch64/threadLS_linux_aarch64.s
+index f541844b9d..727cb0b84e 100644
+--- a/src/hotspot/os_cpu/linux_aarch64/threadLS_linux_aarch64.s
++++ b/src/hotspot/os_cpu/linux_aarch64/threadLS_linux_aarch64.s
+@@ -18,27 +18,3 @@
+ // Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
  // or visit www.oracle.com if you need additional information or have any
  // questions.
- 
-+#ifndef __ANDROID__
-         // JavaThread::aarch64_get_thread_helper()
-         //
-         // Return the current thread pointer in x0.
-@@ -42,3 +43,4 @@ _ZN10JavaThread25aarch64_get_thread_helperEv:
- 	ret
- 
- 	.size _ZN10JavaThread25aarch64_get_thread_helperEv, .-_ZN10JavaThread25aarch64_get_thread_helperEv
-+#endif
+-
+-        // JavaThread::aarch64_get_thread_helper()
+-        //
+-        // Return the current thread pointer in x0.
+-        // Clobber x1, flags.
+-        // All other registers are preserved,
+-
+-	.global	_ZN10JavaThread25aarch64_get_thread_helperEv
+-	.type	_ZN10JavaThread25aarch64_get_thread_helperEv, %function
+-
+-_ZN10JavaThread25aarch64_get_thread_helperEv:
+-	stp x29, x30, [sp, -16]!
+-	adrp x0, :tlsdesc:_ZN6Thread12_thr_currentE
+-	ldr x1, [x0, #:tlsdesc_lo12:_ZN6Thread12_thr_currentE]
+-	add x0, x0, :tlsdesc_lo12:_ZN6Thread12_thr_currentE
+-	.tlsdesccall _ZN6Thread12_thr_currentE
+-	blr x1
+-	mrs x1, tpidr_el0
+-	add x0, x1, x0
+-	ldr x0, [x0]
+-	ldp x29, x30, [sp], 16
+-	ret
+-
+-	.size _ZN10JavaThread25aarch64_get_thread_helperEv, .-_ZN10JavaThread25aarch64_get_thread_helperEv
 diff --git a/src/hotspot/os_cpu/linux_aarch64/thread_linux_aarch64.hpp b/src/hotspot/os_cpu/linux_aarch64/thread_linux_aarch64.hpp
-index 5a1f273c5..88b6750db 100644
+index 985b664aaf..a96d4441c9 100644
 --- a/src/hotspot/os_cpu/linux_aarch64/thread_linux_aarch64.hpp
 +++ b/src/hotspot/os_cpu/linux_aarch64/thread_linux_aarch64.hpp
-@@ -47,6 +47,13 @@ private:
+@@ -60,7 +60,14 @@ private:
    bool pd_get_top_frame(frame* fr_addr, void* ucontext, bool isInJava);
  public:
  
@@ -1013,10 +1041,11 @@ index 5a1f273c5..88b6750db 100644
 +  }
 +#endif
  
- #endif // OS_CPU_LINUX_AARCH64_THREAD_LINUX_AARCH64_HPP
+   // These routines are only used on cpu architectures that
+   // have separate register stacks (Itanium).
 diff --git a/src/hotspot/os_cpu/linux_arm/fpu_control.h b/src/hotspot/os_cpu/linux_arm/fpu_control.h
 new file mode 100644
-index 000000000..745243d62
+index 0000000000..6a2e08808a
 --- /dev/null
 +++ b/src/hotspot/os_cpu/linux_arm/fpu_control.h
 @@ -0,0 +1,59 @@
@@ -1079,10 +1108,11 @@ index 000000000..745243d62
 +extern fpu_control_t __fpu_control;
 +#endif /* __SOFTFP__ */
 +#endif /* _FPU_CONTROL_H */
-diff --git a/src/hotspot/os_cpu/linux_arm/linux_arm_32.S b/src/hotspot/os_cpu/linux_arm/linux_arm_32.S
-index c1c8fd428..626982e13 100644
---- a/src/hotspot/os_cpu/linux_arm/linux_arm_32.S
-+++ b/src/hotspot/os_cpu/linux_arm/linux_arm_32.S
+\ No newline at end of file
+diff --git a/src/hotspot/os_cpu/linux_arm/linux_arm_32.s b/src/hotspot/os_cpu/linux_arm/linux_arm_32.s
+index ededd0fe6e..29fcd9a3f7 100644
+--- a/src/hotspot/os_cpu/linux_arm/linux_arm_32.s
++++ b/src/hotspot/os_cpu/linux_arm/linux_arm_32.s
 @@ -94,7 +94,7 @@ dw_f2b_loop_32:
          stmia to!, {r3 - r9, ip}
          bgt     dw_f2b_loop_32
@@ -1204,10 +1234,10 @@ index c1c8fd428..626982e13 100644
          cmp     r2, #16
  	blt	cl_b2f_copy_8
 diff --git a/src/hotspot/os_cpu/linux_arm/os_linux_arm.cpp b/src/hotspot/os_cpu/linux_arm/os_linux_arm.cpp
-index 6fc0c8406..f0314a729 100644
+index 8f54f0748d..fcb0a51e73 100644
 --- a/src/hotspot/os_cpu/linux_arm/os_linux_arm.cpp
 +++ b/src/hotspot/os_cpu/linux_arm/os_linux_arm.cpp
-@@ -70,7 +70,11 @@
+@@ -71,7 +71,11 @@
  # include <pwd.h>
  # include <poll.h>
  # include <ucontext.h>
@@ -1219,7 +1249,7 @@ index 6fc0c8406..f0314a729 100644
  # include <asm/ptrace.h>
  
  #define SPELL_REG_SP  "sp"
-@@ -81,8 +85,14 @@
+@@ -82,8 +86,14 @@
  #endif
  
  address os::current_stack_pointer() {
@@ -1234,7 +1264,7 @@ index 6fc0c8406..f0314a729 100644
  }
  
  char* os::non_memory_address_word() {
-@@ -406,8 +416,8 @@ void os::setup_fpu() {
+@@ -523,8 +533,8 @@ void os::setup_fpu() {
  #if !defined(__SOFTFP__) && defined(__VFP_FP__)
    // Turn on IEEE-754 compliant VFP mode
    __asm__ volatile (
@@ -1247,7 +1277,7 @@ index 6fc0c8406..f0314a729 100644
  #endif
 diff --git a/src/hotspot/os_cpu/linux_x86/fpu_control.h b/src/hotspot/os_cpu/linux_x86/fpu_control.h
 new file mode 100644
-index 000000000..605302c09
+index 0000000000..03f9f7e6a2
 --- /dev/null
 +++ b/src/hotspot/os_cpu/linux_x86/fpu_control.h
 @@ -0,0 +1,109 @@
@@ -1360,11 +1390,12 @@ index 000000000..605302c09
 +extern fpu_control_t __fpu_control;
 +
 +#endif	/* fpu_control.h */
+\ No newline at end of file
 diff --git a/src/hotspot/os_cpu/linux_x86/os_linux_x86.cpp b/src/hotspot/os_cpu/linux_x86/os_linux_x86.cpp
-index cc71b0d27..d3a40d433 100644
+index 247da0a811..1ccc01ae16 100644
 --- a/src/hotspot/os_cpu/linux_x86/os_linux_x86.cpp
 +++ b/src/hotspot/os_cpu/linux_x86/os_linux_x86.cpp
-@@ -73,8 +73,10 @@
+@@ -75,8 +75,10 @@
  # include <pwd.h>
  # include <poll.h>
  # include <ucontext.h>
@@ -1376,8 +1407,24 @@ index cc71b0d27..d3a40d433 100644
  #endif
  
  #ifdef AMD64
+diff --git a/src/hotspot/share/opto/memnode.cpp b/src/hotspot/share/opto/memnode.cpp
+index e194386b56..b05e9a876f 100644
+--- a/src/hotspot/share/opto/memnode.cpp
++++ b/src/hotspot/share/opto/memnode.cpp
+@@ -4251,9 +4251,9 @@ Node* InitializeNode::complete_stores(Node* rawctl, Node* rawmem, Node* rawptr,
+ 
+   remove_extra_zeroes();
+ 
+-  if (ReduceFieldZeroing || ReduceBulkZeroing)
++  // if (ReduceFieldZeroing || ReduceBulkZeroing)
+     // reduce instruction count for common initialization patterns
+-    coalesce_subword_stores(header_size, size_in_bytes, phase);
++    // coalesce_subword_stores(header_size, size_in_bytes, phase);
+ 
+   Node* zmem = zero_memory();   // initially zero memory state
+   Node* inits = zmem;           // accumulating a linearized chain of inits
 diff --git a/src/hotspot/share/utilities/elfFile.hpp b/src/hotspot/share/utilities/elfFile.hpp
-index 0db847238..cee0456ed 100644
+index 35788b940c..23278d5957 100644
 --- a/src/hotspot/share/utilities/elfFile.hpp
 +++ b/src/hotspot/share/utilities/elfFile.hpp
 @@ -47,8 +47,10 @@ typedef Elf64_Phdr      Elf_Phdr;
@@ -1404,10 +1451,10 @@ index 0db847238..cee0456ed 100644
  #include "globalDefinitions.hpp"
  #include "memory/allocation.hpp"
 diff --git a/src/hotspot/share/utilities/globalDefinitions_gcc.hpp b/src/hotspot/share/utilities/globalDefinitions_gcc.hpp
-index 30cca9ee7..896690c9a 100644
+index db4ef3af63..98cc76c36a 100644
 --- a/src/hotspot/share/utilities/globalDefinitions_gcc.hpp
 +++ b/src/hotspot/share/utilities/globalDefinitions_gcc.hpp
-@@ -48,6 +48,10 @@
+@@ -56,6 +56,10 @@
  #include <limits.h>
  #include <errno.h>
  
@@ -1415,12 +1462,12 @@ index 30cca9ee7..896690c9a 100644
 +#define ANDROID 1
 +#endif
 +
- #if defined(LINUX) || defined(_ALLBSD_SOURCE)
- #include <inttypes.h>
- #include <signal.h>
+ #ifdef SOLARIS
+ #include <sys/trap.h>
+ #include <sys/regset.h>
 diff --git a/src/java.base/share/native/libtinyiconv/iconv.cpp b/src/java.base/share/native/libtinyiconv/iconv.cpp
 new file mode 100644
-index 000000000..7018b6ce2
+index 0000000000..d39171b9d8
 --- /dev/null
 +++ b/src/java.base/share/native/libtinyiconv/iconv.cpp
 @@ -0,0 +1,438 @@
@@ -1862,8 +1909,9 @@ index 000000000..7018b6ce2
 +__END_DECLS
 +
 +#endif // __ANDROID__
+\ No newline at end of file
 diff --git a/src/java.base/unix/classes/sun/net/dns/ResolverConfigurationImpl.java b/src/java.base/unix/classes/sun/net/dns/ResolverConfigurationImpl.java
-index d46138f23..eadaf92a4 100644
+index 5036465d46..9e1eaab08d 100644
 --- a/src/java.base/unix/classes/sun/net/dns/ResolverConfigurationImpl.java
 +++ b/src/java.base/unix/classes/sun/net/dns/ResolverConfigurationImpl.java
 @@ -62,9 +62,11 @@ public class ResolverConfigurationImpl
@@ -1880,7 +1928,7 @@ index d46138f23..eadaf92a4 100644
              while ((line = in.readLine()) != null) {
                  int maxvalues = maxperkeyword;
 diff --git a/src/java.base/unix/native/libjava/java_props_md.c b/src/java.base/unix/native/libjava/java_props_md.c
-index 36a08d4c1..a0eca754b 100644
+index 71c30c405b..7457c97e3f 100644
 --- a/src/java.base/unix/native/libjava/java_props_md.c
 +++ b/src/java.base/unix/native/libjava/java_props_md.c
 @@ -46,6 +46,100 @@
@@ -1985,10 +2033,10 @@ index 36a08d4c1..a0eca754b 100644
  #if !defined(P_tmpdir)
  #include <paths.h>
 diff --git a/src/java.base/unix/native/libjava/jni_util_md.c b/src/java.base/unix/native/libjava/jni_util_md.c
-index 460503cd7..193480e73 100644
+index 87b43f2ceb..0069169fd7 100644
 --- a/src/java.base/unix/native/libjava/jni_util_md.c
 +++ b/src/java.base/unix/native/libjava/jni_util_md.c
-@@ -31,7 +31,7 @@
+@@ -30,7 +30,7 @@
  #include "jni_util.h"
  #include "dlfcn.h"
  
@@ -1999,7 +2047,7 @@ index 460503cd7..193480e73 100644
  extern int __xpg_strerror_r(int, char *, size_t);
 diff --git a/src/java.base/unix/native/libjava/posix_spawn.c b/src/java.base/unix/native/libjava/posix_spawn.c
 new file mode 100644
-index 000000000..f9032bab4
+index 0000000000..ffd73875c7
 --- /dev/null
 +++ b/src/java.base/unix/native/libjava/posix_spawn.c
 @@ -0,0 +1,147 @@
@@ -2150,9 +2198,10 @@ index 000000000..f9032bab4
 +  attr->posix_attr_sigdefault = *sigmask;
 +  return 0;
 +}
+\ No newline at end of file
 diff --git a/src/java.base/unix/native/libjava/posix_spawn.h b/src/java.base/unix/native/libjava/posix_spawn.h
 new file mode 100644
-index 000000000..388016eb3
+index 0000000000..b87e2f1efc
 --- /dev/null
 +++ b/src/java.base/unix/native/libjava/posix_spawn.h
 @@ -0,0 +1,53 @@
@@ -2209,16 +2258,35 @@ index 000000000..388016eb3
 +int posix_spawnattr_setsigdefault(posix_spawnattr_t *, const sigset_t *);
 +
 +#endif
-diff --git a/src/java.base/unix/native/libjli/java_md.c b/src/java.base/unix/native/libjli/java_md.c
-index 503a2457b..d6ac325c8 100644
---- a/src/java.base/unix/native/libjli/java_md.c
-+++ b/src/java.base/unix/native/libjli/java_md.c
-@@ -585,7 +585,58 @@ const char*
- SetExecname(char **argv)
+\ No newline at end of file
+diff --git a/src/java.base/unix/native/libjli/java_md_common.c b/src/java.base/unix/native/libjli/java_md_common.c
+index 2d87a9ad1a..0e964c12fe 100644
+--- a/src/java.base/unix/native/libjli/java_md_common.c
++++ b/src/java.base/unix/native/libjli/java_md_common.c
+@@ -72,6 +72,14 @@ TruncatePath(char *buf)
+ jboolean
+ GetApplicationHome(char *buf, jint bufsize)
  {
-     char* exec_path = NULL;
--#if defined(__linux__)
-+#if defined(__ANDROID__) //Since both __ANDROID__ and __linux__ are defined, we must let the preprocessor preprocess the __ANDRIOD__ part first
++#ifdef __ANDROID__
++    char* java_home_var = getenv("JAVA_HOME");
++    if (java_home_var != NULL) {
++        JLI_Snprintf(buf, bufsize, "%s", java_home_var);
++        buf[bufsize-1] = '\0';
++        return JNI_TRUE;
++    }
++#endif
+     const char *execname = GetExecName();
+     if (execname != NULL) {
+         JLI_Snprintf(buf, bufsize, "%s", execname);
+diff --git a/src/java.base/unix/native/libjli/java_md_solinux.c b/src/java.base/unix/native/libjli/java_md_solinux.c
+index 160f919752..aa7565460a 100644
+--- a/src/java.base/unix/native/libjli/java_md_solinux.c
++++ b/src/java.base/unix/native/libjli/java_md_solinux.c
+@@ -670,6 +670,57 @@ SetExecname(char **argv)
+             }
+         }
+     }
++#elif defined(__ANDROID__) //Since both __ANDROID__ and __linux__ are defined, we must let the preprocessor preprocess the __ANDRIOD__ part first
 +    char *__java_home = getenv("JAVA_HOME");
 +    // From http://hg.openjdk.java.net/mobile/jdk9/jdk/file/17bb8a98d5e3/src/java.base/unix/native/libjli/java_md_solinux.c#l844
 +        /* For Android, 'self' would point to /system/bin/app_process
@@ -2269,15 +2337,14 @@ index 503a2457b..d6ac325c8 100644
 +            }
 +        }
 +        exec_path = JLI_StringDup(buf);
-+#elif defined(__linux__)
+ #elif defined(__linux__)
      {
          const char* self = "/proc/self/exe";
-         char buf[PATH_MAX+1];
-@@ -595,10 +646,6 @@ SetExecname(char **argv)
+@@ -680,10 +731,6 @@ SetExecname(char **argv)
              exec_path = JLI_StringDup(buf);
          }
      }
--#else /* !__linux__ */
+-#else /* !__solaris__ && !__linux__ */
 -    {
 -        /* Not implemented */
 -    }
@@ -2285,42 +2352,38 @@ index 503a2457b..d6ac325c8 100644
  
      if (exec_path == NULL) {
 diff --git a/src/java.base/unix/native/libnet/net_util_md.h b/src/java.base/unix/native/libnet/net_util_md.h
-index 68835987b..eafd4509e 100644
+index 59c37e67a0..7d702bde37 100644
 --- a/src/java.base/unix/native/libnet/net_util_md.h
 +++ b/src/java.base/unix/native/libnet/net_util_md.h
-@@ -26,6 +26,9 @@
+@@ -26,6 +26,10 @@
  #ifndef NET_UTILS_MD_H
  #define NET_UTILS_MD_H
  
 +#ifdef ANDROID
 +#include <netinet/in.h>
 +#endif
++
  #include <netdb.h>
  #include <poll.h>
  #include <sys/socket.h>
 diff --git a/src/java.base/unix/native/libnio/fs/UnixNativeDispatcher.c b/src/java.base/unix/native/libnio/fs/UnixNativeDispatcher.c
-index 9df8be1e6..12f9b4de3 100644
+index f93614e792..25cc3b8258 100644
 --- a/src/java.base/unix/native/libnio/fs/UnixNativeDispatcher.c
 +++ b/src/java.base/unix/native/libnio/fs/UnixNativeDispatcher.c
-@@ -140,6 +140,7 @@ typedef int fstatat64_func(int, const char *, struct stat64 *, int);
+@@ -142,6 +142,7 @@ typedef int fstatat64_func(int, const char *, struct stat64 *, int);
  typedef int unlinkat_func(int, const char*, int);
  typedef int renameat_func(int, const char*, int, const char*);
  typedef int futimesat_func(int, const char *, const struct timeval *);
 +typedef int utimensat_func(int, const char *, const struct timespec *, int flags);
- typedef int futimens_func(int, const struct timespec *);
- typedef int lutimes_func(const char *, const struct timeval *);
  typedef DIR* fdopendir_func(int);
-@@ -149,13 +150,49 @@ static fstatat64_func* my_fstatat64_func = NULL;
+ 
+ static openat64_func* my_openat64_func = NULL;
+@@ -149,8 +150,44 @@ static fstatat64_func* my_fstatat64_func = NULL;
  static unlinkat_func* my_unlinkat_func = NULL;
  static renameat_func* my_renameat_func = NULL;
  static futimesat_func* my_futimesat_func = NULL;
 +static utimensat_func* my_utimensat_func = NULL;
- static futimens_func* my_futimens_func = NULL;
- static lutimes_func* my_lutimes_func = NULL;
  static fdopendir_func* my_fdopendir_func = NULL;
- #if defined(__linux__)
- static statx_func* my_statx_func = NULL;
- #endif
  
 +#ifdef __ANDROID__
 +/*
@@ -2360,26 +2423,26 @@ index 9df8be1e6..12f9b4de3 100644
  /**
   * fstatat missing from glibc on Linux.
   */
-@@ -272,6 +309,9 @@ Java_sun_nio_fs_UnixNativeDispatcher_init(JNIEnv* env, jclass this)
- #ifndef _ALLBSD_SOURCE
+@@ -269,6 +306,9 @@ Java_sun_nio_fs_UnixNativeDispatcher_init(JNIEnv* env, jclass this)
+     my_unlinkat_func = (unlinkat_func*) dlsym(RTLD_DEFAULT, "unlinkat");
+     my_renameat_func = (renameat_func*) dlsym(RTLD_DEFAULT, "renameat");
      my_futimesat_func = (futimesat_func*) dlsym(RTLD_DEFAULT, "futimesat");
-     my_lutimes_func = (lutimes_func*) dlsym(RTLD_DEFAULT, "lutimes");
-+#endif
 +#ifdef __ANDROID__
 +    my_utimensat_func = (utimensat_func*) dlsym(RTLD_DEFAULT, "utimensat");
- #endif
-     my_futimens_func = (futimens_func*) dlsym(RTLD_DEFAULT, "futimens");
++#endif
  #if defined(_AIX)
-@@ -292,7 +332,7 @@ Java_sun_nio_fs_UnixNativeDispatcher_init(JNIEnv* env, jclass this)
+     my_fdopendir_func = (fdopendir_func*) dlsym(RTLD_DEFAULT, "fdopendir64");
+ #else
+@@ -286,7 +326,7 @@ Java_sun_nio_fs_UnixNativeDispatcher_init(JNIEnv* env, jclass this)
+ #ifdef _ALLBSD_SOURCE
      capabilities |= sun_nio_fs_UnixNativeDispatcher_SUPPORTS_FUTIMES;
-     capabilities |= sun_nio_fs_UnixNativeDispatcher_SUPPORTS_LUTIMES;
  #else
 -    if (my_futimesat_func != NULL)
 +    if (my_futimesat_func != NULL || my_utimensat_func != NULL)
          capabilities |= sun_nio_fs_UnixNativeDispatcher_SUPPORTS_FUTIMES;
-     if (my_lutimes_func != NULL)
-         capabilities |= sun_nio_fs_UnixNativeDispatcher_SUPPORTS_LUTIMES;
-@@ -304,7 +344,7 @@ Java_sun_nio_fs_UnixNativeDispatcher_init(JNIEnv* env, jclass this)
+ #endif
+ 
+@@ -294,7 +334,7 @@ Java_sun_nio_fs_UnixNativeDispatcher_init(JNIEnv* env, jclass this)
  
      if (my_openat64_func != NULL &&  my_fstatat64_func != NULL &&
          my_unlinkat_func != NULL && my_renameat_func != NULL &&
@@ -2388,7 +2451,7 @@ index 9df8be1e6..12f9b4de3 100644
      {
          capabilities |= sun_nio_fs_UnixNativeDispatcher_SUPPORTS_OPENAT;
      }
-@@ -689,22 +729,30 @@ Java_sun_nio_fs_UnixNativeDispatcher_futimes(JNIEnv* env, jclass this, jint file
+@@ -707,22 +747,30 @@ Java_sun_nio_fs_UnixNativeDispatcher_futimes(JNIEnv* env, jclass this, jint file
      jlong accessTime, jlong modificationTime)
  {
      struct timeval times[2];
@@ -2410,7 +2473,7 @@ index 9df8be1e6..12f9b4de3 100644
      RESTARTABLE(futimes(filedes, &times[0]), err);
  #else
 -    if (my_futimesat_func == NULL) {
--        JNU_ThrowInternalError(env, "my_futimesat_func is NULL");
+-        JNU_ThrowInternalError(env, "my_ftimesat_func is NULL");
 +    if (my_futimesat_func == NULL && my_utimensat_func == NULL) {
 +        JNU_ThrowInternalError(env, "my_futimesat_func and my_utimensat_func are NULL");
          return;
@@ -2425,7 +2488,7 @@ index 9df8be1e6..12f9b4de3 100644
      if (err == -1) {
          throwUnixException(env, errno);
 diff --git a/src/java.desktop/unix/native/libawt/awt/awt_LoadLibrary.c b/src/java.desktop/unix/native/libawt/awt/awt_LoadLibrary.c
-index fbd6ce9d1..94d238f8e 100644
+index d5ce3f2edc..da3e76fc8a 100644
 --- a/src/java.desktop/unix/native/libawt/awt/awt_LoadLibrary.c
 +++ b/src/java.desktop/unix/native/libawt/awt/awt_LoadLibrary.c
 @@ -30,6 +30,7 @@
@@ -2436,7 +2499,7 @@ index fbd6ce9d1..94d238f8e 100644
  #include "gdefs.h"
  
  #include <sys/param.h>
-@@ -98,6 +99,30 @@ JNIEXPORT jboolean JNICALL AWTIsHeadless() {
+@@ -105,6 +106,30 @@ JNIEXPORT jboolean JNICALL AWTIsHeadless() {
    #define HEADLESS_PATH "/libawt_headless.so"
  #endif
  
@@ -2467,21 +2530,21 @@ index fbd6ce9d1..94d238f8e 100644
  jint
  AWT_OnLoad(JavaVM *vm, void *reserved)
  {
-@@ -121,7 +146,11 @@ AWT_OnLoad(JavaVM *vm, void *reserved)
+@@ -128,7 +153,11 @@ AWT_OnLoad(JavaVM *vm, void *reserved)
  #ifndef STATIC_BUILD
      /* Get address of this library and the directory containing it. */
      dladdr((void *)AWT_OnLoad, &dlinfo);
 -    realpath((char *)dlinfo.dli_fname, buf);
 +    if (strrchr(dlinfo.dli_fname, '/') != NULL) {
 +        realpath((char *)dlinfo.dli_fname, buf);
-+    }else{
++    } else {
 +        read_so_path_from_maps(dlinfo.dli_fname,buf);
 +    }
      len = strlen(buf);
      p = strrchr(buf, '/');
  #endif
 diff --git a/src/java.instrument/unix/native/libinstrument/EncodingSupport_md.c b/src/java.instrument/unix/native/libinstrument/EncodingSupport_md.c
-index 13cca6453..796666173 100644
+index 626c8b2cf8..caf6cef825 100644
 --- a/src/java.instrument/unix/native/libinstrument/EncodingSupport_md.c
 +++ b/src/java.instrument/unix/native/libinstrument/EncodingSupport_md.c
 @@ -64,7 +64,11 @@ utfInitialize(void)
@@ -2497,7 +2560,7 @@ index 13cca6453..796666173 100644
          UTF_DEBUG(("NO codeset returned by nl_langinfo(CODESET)\n"));
          return;
 diff --git a/src/jdk.jdwp.agent/share/native/libjdwp/utf_util.c b/src/jdk.jdwp.agent/share/native/libjdwp/utf_util.c
-index 3fb38893e..20ac7b270 100644
+index 3fb38893e7..20ac7b2709 100644
 --- a/src/jdk.jdwp.agent/share/native/libjdwp/utf_util.c
 +++ b/src/jdk.jdwp.agent/share/native/libjdwp/utf_util.c
 @@ -483,7 +483,11 @@ static int iconvConvert(conv_direction drn, char *bytes, size_t len, char *outpu
