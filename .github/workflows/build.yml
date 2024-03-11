@@ -16,9 +16,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v4.1.1
     - name: set up JDK 8
-      uses: actions/setup-java@v4
+      uses: actions/setup-java@v4.1.0
       with:
         java-version: '8'
         distribution: 'dragonwell'
@@ -29,18 +29,18 @@ jobs:
     - name: Build with CI build script
       run: bash "ci_build_arch_${{matrix.arch}}.sh"
     - name: Upload JDK build output
-      uses: actions/upload-artifact@v4.1.0
+      uses: actions/upload-artifact@v4.3.1
       with:
         name: "jdk8-${{matrix.arch}}"
         path: jdk8*.tar.xz
 
     - name: Upload JRE build output
-      uses: actions/upload-artifact@v4.1.0
+      uses: actions/upload-artifact@v4.3.1
       with:
         name: 'jre8-${{matrix.arch}}'
         path: jre8*.tar.xz
     - name: Upload JRE debuginfo build output
-      uses: actions/upload-artifact@v4.1.0
+      uses: actions/upload-artifact@v4.3.1
       with:
         name: "jre8-debuginfo-${{matrix.arch}}"
         path: dizout
@@ -50,31 +50,31 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v4.1.1
     - name: Get jre8-aarch32
-      uses: actions/download-artifact@v4.1.0
+      uses: actions/download-artifact@v4.1.4
       with:
         name: jre8-aarch32
         path: pojav
     - name: Get jre8-aarch64
-      uses: actions/download-artifact@v4.1.0
+      uses: actions/download-artifact@v4.1.4
       with:
         name: jre8-aarch64
         path: pojav
     - name: Get jre8-x86
-      uses: actions/download-artifact@v4.1.0
+      uses: actions/download-artifact@v4.1.4
       with:
         name: jre8-x86
         path: pojav
     - name: Get jre8-x86_64
-      uses: actions/download-artifact@v4.1.0
+      uses: actions/download-artifact@v4.1.4
       with:
         name: jre8-x86_64
         path: pojav
     - name: Repack JRE
       run: bash "repackjre.sh" $GITHUB_WORKSPACE/pojav $GITHUB_WORKSPACE/pojav/jre8-pojav
     - name: Upload artifact
-      uses: actions/upload-artifact@v4.1.0
+      uses: actions/upload-artifact@v4.3.1
       with:
           name: jre8-pojav
           path: pojav/jre8-pojav/*
