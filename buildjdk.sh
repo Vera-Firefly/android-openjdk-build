@@ -53,11 +53,8 @@ cd openjdk
 
 # Apply patches
 git reset --hard
-if [[ "$TARGET_JDK" == "arm" ]] || [[ "$TARGET_JDK" == "x86" ]]; then
-  git apply --reject --whitespace=fix ../patches/jdk17u_android_32.diff || echo "git apply failed (Android patch set)"
-else
-  git apply --reject --whitespace=fix ../patches/jdk17u_android_64.diff || echo "git apply failed (Android patch set)"
-fi
+git apply --reject --whitespace=fix ../patches/jdk11u_android.diff || echo "git apply failed (Android patch set)"
+
 # rm -rf build
 
 #   --with-extra-cxxflags="$CXXFLAGS -Dchar16_t=uint16_t -Dchar32_t=uint32_t" \
@@ -92,7 +89,7 @@ fi
 
 jobs=4
 
-cd build/${JVM_PLATFORM}-${TARGET_JDK}-${JVM_VARIANTS}-${JDK_DEBUG_LEVEL}
+cd build/${JVM_PLATFORM}-${TARGET_JDK}-normal-${JVM_VARIANTS}-${JDK_DEBUG_LEVEL}
 make JOBS=$jobs images || \
 error_code=$?
 if [[ "$error_code" -ne 0 ]]; then

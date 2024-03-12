@@ -22,7 +22,7 @@ mkdir -p "$out"
 makearch () {
   echo "Making $2...";
   cd "$work";
-  tar xf $(find "$in" -name jre17-$2-*release.tar.xz) > /dev/null 2>&1;
+  tar xf $(find "$in" -name jre11-$2-*release.tar.xz) > /dev/null 2>&1;
   mv bin "$work1"/;
   mkdir -p "$work1"/lib;
   
@@ -47,7 +47,7 @@ makearch () {
 makeuni () {
   echo "Making universal...";
   cd "$work";
-  tar xf $(find "$in" -name jre17-arm64-*release.tar.xz) > /dev/null 2>&1;
+  tar xf $(find "$in" -name jre11-arm64-*release.tar.xz) > /dev/null 2>&1;
   
   rm -rf bin;
   rm -rf lib/server;
