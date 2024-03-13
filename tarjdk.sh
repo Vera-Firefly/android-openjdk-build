@@ -3,7 +3,7 @@ set -e
 . setdevkitpath.sh
 
 unset AR AS CC CXX LD OBJCOPY RANLIB STRIP CPPFLAGS LDFLAGS
-git clone --depth 1 https://github.com/ShirosakiMio/termux-elf-cleaner || true
+git clone --depth 1 -b v2.2.0 https://github.com/termux/termux-elf-cleaner || true
 cd termux-elf-cleaner
 autoreconf --install
 bash configure
@@ -30,8 +30,10 @@ cd jreout
 # Strip in place all .so files thanks to the ndk
 find ./ -name '*.so' -execdir $NDK/toolchains/llvm/prebuilt/linux-x86_64/${NDK_PREBUILT_ARCH}-linux-android/bin/strip {} \;
 
-tar cJf ../jre17-${TARGET_SHORT}-`date +%Y%m%d`-${JDK_DEBUG_LEVEL}.tar.xz .
+tar cJf ../jre21-${TARGET_SHORT}-`date +%Y%m%d`-${JDK_DEBUG_LEVEL}.tar.xz .
+
+cp -rv jre_override/lib/* jdkout/lib/ || true
 
 cd ../jdkout
-tar cJf ../jdk17-${TARGET_SHORT}-`date +%Y%m%d`-${JDK_DEBUG_LEVEL}.tar.xz .
+tar cJf ../jdk21-${TARGET_SHORT}-`date +%Y%m%d`-${JDK_DEBUG_LEVEL}.tar.xz .
 
