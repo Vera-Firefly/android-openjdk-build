@@ -33,8 +33,6 @@ find ./ -name '*.so' -execdir $NDK/toolchains/llvm/prebuilt/linux-x86_64/bin/llv
 
 tar cJf ../jre17-${TARGET_SHORT}-`date +%Y%m%d`-${JDK_DEBUG_LEVEL}.tar.xz .
 
-cp -rv jre_override/lib/* jdkout/lib/ || true
-
 cd ../jdkout
 tar cJf ../jdk17-${TARGET_SHORT}-`date +%Y%m%d`-${JDK_DEBUG_LEVEL}.tar.xz .
 
