@@ -18,7 +18,7 @@ if [[ "$TARGET_JDK" == "x86" ]]; then
 fi
 
 mv jdkout/jre/lib/${TARGET_JDK}/libfreetype.so.6 jdkout/lib/${TARGET_JDK}/libfreetype.so || echo "Move exit $?"
-mv jdkout/jre/lib/libfreetype.dylib.6 jdkout/jre/lib/libfreetype.dylib || echo "Move exit $?"
+mv jdkout/jre/lib/libfreetype.dylib.6 jdkout/lib/libfreetype.dylib || echo "Move exit $?"
 mv jreout/lib/${TARGET_JDK}/libfreetype.so.6 jreout/lib/${TARGET_JDK}/libfreetype.so || echo "Move exit $?"
 mv jreout/lib/libfreetype.dylib.6 jreout/lib/libfreetype.dylib || echo "Move exit $?"
 
