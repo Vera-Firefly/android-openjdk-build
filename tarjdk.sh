@@ -29,7 +29,7 @@ fi
 sudo cp -R jre_override/lib/* jreout/lib/
 sudo cp -R jre_override/lib/* jdkout/lib/
 
-sudo mv -N jdkout/jre/* jdkout/
+sudo mv -n jdkout/jre/* jdkout/
 
 cd jreout
 

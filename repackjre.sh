@@ -17,11 +17,6 @@ mkdir -p $work
 mkdir -p $work1
 mkdir -p "$out"
 
-compress_jars(){
-  find ./ -name '*.jar' -execdir pack200 -S-1 -g -G -E9 {}.pack {} \;
-  find ./ -name '*.jar' -execdir rm {} \;
-}
-
 # here comes a not-so-complicated functions to easily make desired arch
 ## Usage: makearch [jre_libs_dir_name] [name_in_tarball]
 makearch () {
@@ -44,10 +39,6 @@ makearch () {
   mv lib/$1 "$work1"/lib/;
   mv lib/jexec "$work1"/lib/;
   
-
-  
-  
-  
   XZ_OPT="-6 --threads=0" tar cJf bin-$2.tar.xz -C "$work1" . > /dev/null 2>&1;
   mv bin-$2.tar.xz "$out"/;
   rm -rf "$work"/*; 
@@ -67,7 +58,6 @@ makeuni () {
   rm -rf lib/jfr
   rm -rf man
   
-  compress_jars
   XZ_OPT="-6 --threads=0" tar cJf universal.tar.xz * > /dev/null 2>&1;
   mv universal.tar.xz "$out"/;
   rm -rf "$work"/*;
