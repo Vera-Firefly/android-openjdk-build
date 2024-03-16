@@ -29,8 +29,8 @@ fi
 sudo cp -R jre_override/lib/* jreout/lib/
 sudo cp -R jre_override/lib/* jdkout/lib/
 
-sudo mv -N jdkout/jre/* jdkout/
-
+sudo cp -R jdkout/jre/* jdkout/
+sudo rm -rf jdkout/jre
 cd jreout
 
 # Strip in place all .so files thanks to the ndk
