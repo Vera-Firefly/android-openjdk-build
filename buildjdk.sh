@@ -36,13 +36,9 @@ platform_args="--with-toolchain-type=gcc \
   --with-freetype-lib=$FREETYPE_DIR/lib \
   "
 AUTOCONF_x11arg="--x-includes=$ANDROID_INCLUDE/X11"
-AUTOCONF_EXTRA_ARGS+="OBJCOPY=$OBJCOPY \
-  AR=$AR \
-  STRIP=$STRIP \
-  "
 
 export CFLAGS+=" -DANDROID"
-export LDFLAGS+=" -L$PWD/dummy_libs" 
+export LDFLAGS+=" -L$PWD/dummy_libs"
 
 # Create dummy libraries so we won't have to remove them in OpenJDK makefiles
 mkdir -p dummy_libs
