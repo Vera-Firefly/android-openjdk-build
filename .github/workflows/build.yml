@@ -1,12 +1,7 @@
 name: Build OpenJDK for Android
 
 on:
-  push:
-  pull_request:
   workflow_dispatch:
-  schedule:
-  - cron: "20 5 2,9,16,23 * *"
-
 jobs:
   build_android:
     strategy:
