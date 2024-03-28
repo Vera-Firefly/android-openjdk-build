@@ -3,7 +3,7 @@ set -e
 . setdevkitpath.sh
 
 export FREETYPE_DIR=$PWD/freetype-$BUILD_FREETYPE_VERSION/build_android-$TARGET_SHORT
-export CUPS_DIR=$PWD/cups-2.2.4
+export CUPS_DIR=$PWD/cups-2.4.7
 export CFLAGS+=" -DLE_STANDALONE" # -I$FREETYPE_DIR -I$CUPS_DI
 if [[ "$TARGET_JDK" == "arm" ]]
 then
@@ -36,13 +36,9 @@ platform_args="--with-toolchain-type=gcc \
   --with-freetype-lib=$FREETYPE_DIR/lib \
   "
 AUTOCONF_x11arg="--x-includes=$ANDROID_INCLUDE/X11"
-AUTOCONF_EXTRA_ARGS+="OBJCOPY=$OBJCOPY \
-  AR=$AR \
-  STRIP=$STRIP \
-  "
 
 export CFLAGS+=" -DANDROID"
-export LDFLAGS+=" -L$PWD/dummy_libs" 
+export LDFLAGS+=" -L$PWD/dummy_libs"
 
 # Create dummy libraries so we won't have to remove them in OpenJDK makefiles
 mkdir -p dummy_libs
@@ -57,11 +53,8 @@ cd openjdk
 
 # Apply patches
 git reset --hard
-if [[ "$TARGET_JDK" == "arm" ]] || [[ "$TARGET_JDK" == "x86" ]]; then
-  git apply --reject --whitespace=fix ../patches/jdk17u_android_32.diff || echo "git apply failed (Android patch set)"
-else
-  git apply --reject --whitespace=fix ../patches/jdk17u_android_64.diff || echo "git apply failed (Android patch set)"
-fi
+
+git apply --reject --whitespace=fix ../patches/jdk17u_android.diff || echo "git apply failed (Android patch set)"
 
 # rm -rf build
 
