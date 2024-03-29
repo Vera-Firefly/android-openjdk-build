@@ -24,7 +24,6 @@ findexec jreout | xargs -- ./termux-elf-cleaner/termux-elf-cleaner
 findexec jdkout | xargs -- ./termux-elf-cleaner/termux-elf-cleaner
 
 cp -rv jre_override/lib/* jreout/lib/ || true
-cp -rv jre_override/lib/* jdkout/lib/ || true
 
 cd jreout
 

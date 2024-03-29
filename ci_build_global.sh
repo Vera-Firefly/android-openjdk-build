@@ -4,15 +4,19 @@ set -e
 
 export JDK_DEBUG_LEVEL=release
 
-sudo chmod 777 maketoolchain.sh
+chmod 777 maketoolchain.sh
 
-if [[ -z "$NDK_USE_EXISTING" ]]; then
-  wget -nc -nv -O android-ndk-$NDK_VERSION-linux-x86_64.zip "https://dl.google.com/android/repository/android-ndk-$NDK_VERSION-linux-x86_64.zip"
-  ./extractndk.sh
-  ./maketoolchain.sh
-fi
+wget -nc -nv -O android-ndk-$NDK_VERSION-linux.zip "https://dl.google.com/android/repository/android-ndk-$NDK_VERSION-linux.zip"
+./extractndk.sh
+./maketoolchain.sh
 
 # Some modifies to NDK to fix
+
+chmod 777 getlibs.sh
+chmod 777 buildlibs.sh
+chmod 777 buildjdk.sh
+chmod 777 removejdkdebuginfo.sh
+chmod 777 tarjdk.sh
 
 ./getlibs.sh
 ./buildlibs.sh

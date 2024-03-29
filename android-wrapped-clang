@@ -1,4 +1,5 @@
 #!/bin/bash
+#!/usr/bin/env bash
 if [[ "$1" = "--version" ]]; then
   echo "${TARGET}-gcc (GCC) 13.2 20230727 (prerelease)"
   echo "Copyright (C) 2023 Free Software Foundation, Inc."
@@ -7,4 +8,11 @@ if [[ "$1" = "--version" ]]; then
 else
   exec $thecc -Wno-unknown-warning-option "${@/-fno-var-tracking-assignments/}"
   # exec $thecc "$theargs"
+fi
+bin_dir=`dirname "$0"`
+if [ "$1" != "-cc1" ]; then
+    "$bin_dir/clang" --target=${TARGET}-linux-android${API} "$@"
+else
+    # Target is already an argument.
+    "$bin_dir/clang" "$@"
 fi

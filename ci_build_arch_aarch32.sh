@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-export TARGET=arm-linux-androideabi
+export TARGET=armv7a-linux-androideabi
 export TARGET_JDK=arm
 export NDK_PREBUILT_ARCH=arm
 
