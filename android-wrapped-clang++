@@ -1,15 +1,9 @@
 #!/bin/bash
 #!/usr/bin/env bash
-if [[ "$1" = "--version" ]]; then
-  echo "${TARGET}-g++ (GCC) 13.2 20230727 (prerelease)"
-  echo "Copyright (C) 2023 Free Software Foundation, Inc."
-  echo "This is free software; see the source for copying conditions.  There is NO"
-  echo "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE."
-else
-  # theargs=
-  exec $thecxx -Wno-unknown-warning-option "${@/-fno-var-tracking-assignments/}"
-  # exec $thecxx "$theargs"
-fi
+# theargs=
+exec $thecxx -Wno-unknown-warning-option "${@/-fno-var-tracking-assignments/}"
+# exec $thecxx "$theargs"
+
 bin_dir=`dirname "$0"`
 if [ "$1" != "-cc1" ]; then
     "$bin_dir/clang++" --target=${TARGET}-linux-android${API} "$@"
