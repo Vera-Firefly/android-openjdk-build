@@ -1,10 +1,8 @@
 #!/bin/bash
 #!/usr/bin/env bash
-if [[ "$1" = "--version" ]]; then
-else
-  exec $thecc -Wno-unknown-warning-option "${@/-fno-var-tracking-assignments/}"
-  # exec $thecc "$theargs"
-fi
+exec $thecc -Wno-unknown-warning-option "${@/-fno-var-tracking-assignments/}"
+# exec $thecc "$theargs"
+
 bin_dir=`dirname "$0"`
 if [ "$1" != "-cc1" ]; then
     "$bin_dir/clang" --target=${TARGET}-linux-android${API} "$@"
