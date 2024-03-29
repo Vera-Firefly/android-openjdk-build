@@ -18,7 +18,6 @@ chmod 777 buildlibs.sh
 chmod 777 buildjdk.sh
 chmod 777 removejdkdebuginfo.sh
 chmod 777 tarjdk.sh
-chomd 777 clonejdk.sh
 
 ./getlibs.sh
 ./buildlibs.sh
