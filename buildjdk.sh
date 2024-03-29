@@ -39,6 +39,7 @@ AUTOCONF_x11arg="--x-includes=$ANDROID_INCLUDE/X11"
 AUTOCONF_EXTRA_ARGS+="OBJCOPY=$OBJCOPY \
   AR=$AR \
   STRIP=$STRIP \
+  "
 
 export CFLAGS+=" -DANDROID"
 export LDFLAGS+=" -L$PWD/dummy_libs"
