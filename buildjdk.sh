@@ -36,6 +36,9 @@ platform_args="--with-toolchain-type=gcc \
   --with-freetype-lib=$FREETYPE_DIR/lib \
   "
 AUTOCONF_x11arg="--x-includes=$ANDROID_INCLUDE/X11"
+AUTOCONF_EXTRA_ARGS+="OBJCOPY=$OBJCOPY \
+  AR=$AR \
+  STRIP=$STRIP \
 
 export CFLAGS+=" -DANDROID"
 export LDFLAGS+=" -L$PWD/dummy_libs"
@@ -80,6 +83,8 @@ bash ./configure \
     --with-fontconfig-include=$ANDROID_INCLUDE \
     $AUTOCONF_x11arg $AUTOCONF_EXTRA_ARGS \
     --x-libraries=/usr/lib \
+    NM="$NM" \
+    OBJDUMP="$OBJDUMP" \
         $platform_args || \
 error_code=$?
 if [[ "$error_code" -ne 0 ]]; then
