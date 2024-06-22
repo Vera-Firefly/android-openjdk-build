@@ -62,7 +62,7 @@ ar cr dummy_libs/libthread_db.a
 # fix building libjawt
 ln -s -f $CUPS_DIR/cups $ANDROID_INCLUDE/
 
-cd openjdk-21
+cd openjdk
 
 # Apply patches
 git reset --hard
