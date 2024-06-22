@@ -165,7 +165,7 @@ index d80b804a2..fd2a8ed15 100644
  
 -ifeq ($(call isTargetOs, linux), true)
 +ifeq ($(call isTargetOs, android linux), true)
-   DUMP_SYMBOLS_CMD := $(NM) $(NMFLAGS) --defined-only *$(OBJ_SUFFIX)
+   DUMP_SYMBOLS_CMD := $(NM) --defined-only *$(OBJ_SUFFIX)
    ifneq ($(FILTER_SYMBOLS_PATTERN), )
      FILTER_SYMBOLS_PATTERN := $(FILTER_SYMBOLS_PATTERN)|
 diff --git a/make/hotspot/lib/JvmOverrideFiles.gmk b/make/hotspot/lib/JvmOverrideFiles.gmk
@@ -2258,6 +2258,19 @@ index 21ef40688..b8c2520d2 100644
  #endif
  
      if (exec_path == NULL) {
+diff --git a/src/java.base/unix/native/libnet/net_util_md.c b/src/java.base/unix/native/libnet/net_util_md.c
+index 9d812de5c..d3e87b0ae 100644
+--- a/src/java.base/unix/native/libnet/net_util_md.c
++++ b/src/java.base/unix/native/libnet/net_util_md.c
+@@ -129,7 +129,7 @@ jint  IPv6_supported()
+      * Linux - check if any interface has an IPv6 address.
+      * Don't need to parse the line - we just need an indication.
+      */
+-#ifdef __linux__
++#if defined(__linux__) && !defined(__ANDROID__)
+     {
+         FILE *fP = fopen("/proc/net/if_inet6", "r");
+         char buf[255];
 diff --git a/src/java.base/unix/native/libnet/net_util_md.h b/src/java.base/unix/native/libnet/net_util_md.h
 index 902cf9673..3b8acd66b 100644
 --- a/src/java.base/unix/native/libnet/net_util_md.h
@@ -2276,13 +2289,6 @@ diff --git a/src/java.base/unix/native/libnio/fs/UnixNativeDispatcher.c b/src/ja
 index 9371bc001..ab7dd0fc0 100644
 --- a/src/java.base/unix/native/libnio/fs/UnixNativeDispatcher.c
 +++ b/src/java.base/unix/native/libnio/fs/UnixNativeDispatcher.c
-@@ -80,5 +80,5 @@
- // not relying on included headers.
-
--#ifndef __GLIBC__
-+#if !defined(__GLIBC__) && !defined(__ANDROID__)
- // Alpine doesn't know these types, define them
- typedef unsigned int       __uint32_t;
 @@ -140,6 +140,7 @@ typedef int fstatat64_func(int, const char *, struct stat64 *, int);
  typedef int unlinkat_func(int, const char*, int);
  typedef int renameat_func(int, const char*, int, const char*);
@@ -2291,7 +2297,7 @@ index 9371bc001..ab7dd0fc0 100644
  typedef int futimens_func(int, const struct timespec *);
  typedef int lutimes_func(const char *, const struct timeval *);
  typedef DIR* fdopendir_func(int);
-@@ -149,13 +150,49 @@ static fstatat64_func* my_fstatat64_func = NULL;
+@@ -149,10 +150,46 @@ static fstatat64_func* my_fstatat64_func = NULL;
  static unlinkat_func* my_unlinkat_func = NULL;
  static renameat_func* my_renameat_func = NULL;
  static futimesat_func* my_futimesat_func = NULL;
@@ -2299,9 +2305,6 @@ index 9371bc001..ab7dd0fc0 100644
  static futimens_func* my_futimens_func = NULL;
  static lutimes_func* my_lutimes_func = NULL;
  static fdopendir_func* my_fdopendir_func = NULL;
- #if defined(__linux__)
- static statx_func* my_statx_func = NULL;
- #endif
  
 +#ifdef __ANDROID__
 +/*
@@ -2507,50 +2510,3 @@ index c6e012ecf..d4f956756 100644
 +  }
  
  #endif // OS_CPU_LINUX_AARCH64_JAVATHREAD_LINUX_AARCH64_HPP
-
- diff --git a/src/java.base/share/native/libjli/java.c b/src/java.base/share/native/libjli/java.c
-index 3b4a15b..1bca2bc 100644
---- a/src/java.base/share/native/libjli/java.c
-+++ b/src/java.base/share/native/libjli/java.c
-@@ -56,6 +56,32 @@
- #include "java.h"
- #include "jni.h"
- 
-+#ifdef __ANDROID__
-+#include <stdbool.h>
-+#include <dlfcn.h>
-+static void android_disable_tags() {
-+    void *lib_handle = dlopen("libc.so", RTLD_LAZY);
-+    if (lib_handle) {
-+        if (android_get_device_api_level() >= 31) {
-+            int (*mallopt_func)(int, int) = dlsym(lib_handle, "mallopt");
-+            if (mallopt_func) {
-+                mallopt_func(M_BIONIC_SET_HEAP_TAGGING_LEVEL, 0);
-+            }
-+            return;
-+        }
-+        /* android_get_device_api_level() < 31 */
-+        bool (*android_mallopt)(int opcode, void* arg, size_t arg_size) = dlsym(lib_handle, "android_mallopt");
-+        if (android_mallopt) {
-+            int android_malloc_tag_level = 0;
-+            android_mallopt(8, &android_malloc_tag_level, sizeof(android_malloc_tag_level));
-+        }
-+        dlclose(lib_handle);
-+    }
-+}
-+#else
-+static void android_disable_tags(){}
-+#endif
-+
- /*
-  * A NOTE TO DEVELOPERS: For performance reasons it is important that
-  * the program image remain relatively small until after SelectVersion
-@@ -253,6 +279,8 @@ JLI_Launch(int argc, char ** argv,              /* main argc, argv */
-     _is_java_args = javaargs;
-     _wc_enabled = cpwildcard;
- 
-+    android_disable_tags();
-+
-     InitLauncher(javaw);
-     DumpState();
-     if (JLI_IsTraceLauncher()) {
