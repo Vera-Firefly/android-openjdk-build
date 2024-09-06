@@ -27,11 +27,9 @@ fi
 # cp -R /usr/include/X11 $ANDROID_INCLUDE/
 # cp -R /usr/include/fontconfig $ANDROID_INCLUDE/
 
-chmod +x android-wrapped-clang
-chmod +x android-wrapped-clang++
 ln -s -f /usr/include/X11 $ANDROID_INCLUDE/
 ln -s -f /usr/include/fontconfig $ANDROID_INCLUDE/
-platform_args="--with-toolchain-type=gcc \
+platform_args="--with-toolchain-type=clang \
   --with-freetype-include=$FREETYPE_DIR/include/freetype2 \
   --with-freetype-lib=$FREETYPE_DIR/lib \
   OBJDUMP=${OBJDUMP} \
@@ -75,7 +73,7 @@ git apply --reject --whitespace=fix ../patches/jdk21u_android.diff || echo "git 
 #   --with-extra-cflags="$CPPFLAGS" \
 
 bash ./configure \
-    --with-version-pre=" " \
+    --with-version-pre= \
     --openjdk-target=$TARGET \
     --with-extra-cflags="$CFLAGS" \
     --with-extra-cxxflags="$CFLAGS" \
