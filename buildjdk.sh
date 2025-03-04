@@ -18,7 +18,7 @@ fi
 
 if [[ "$TARGET_JDK" == "aarch64" ]]
 then
-   export CFLAGS+=" -march=armv8-a+simd+crc+crypto+fp16 -mcpu=cortex-a76"
+   export CFLAGS+=" -march=armv8-a+simd"
 fi
    
 # if [ "$TARGET_JDK" == "aarch32" ] || [ "$TARGET_JDK" == "aarch64" ]
@@ -50,17 +50,19 @@ platform_args="--with-toolchain-type=clang \
   CXXFILT=${CXXFILT} \
   LD=$TOOLCHAIN/bin/lld \
   "
+
 if [[ "$TARGET_JDK" == "x86" ]]; then
     platform_args+="--build=x86_64-unknown-linux-gnu \
     "
 fi
+
 AUTOCONF_x11arg="--x-includes=$ANDROID_INCLUDE/X11"
 AUTOCONF_EXTRA_ARGS+="OBJCOPY=$OBJCOPY \
   AR=$AR \
   STRIP=$STRIP \
   "
 
-export CFLAGS+=" -DANDROID -pipe -integrated-as -mllvm -polly -mllvm -polly-vectorizer=stripmine -mllvm -polly-invariant-load-hoisting -mllvm -polly-run-inliner -mllvm -polly-run-dce -flto=thin -fno-emulated-tls -fwhole-program-vtables -fdata-sections -ffunction-sections -fmerge-all-constants"
+export CFLAGS+=" -DANDROID -pipe -integrated-as -mllvm -polly -mllvm -polly-vectorizer=stripmine -mllvm -polly-invariant-load-hoisting -mllvm -polly-run-inliner -mllvm -polly-run-dce -flto=thin -fno-emulated-tls -fwhole-program-vtables -fdata-sections -ffunction-sections -fmerge-all-constants -mfloat-abi=softfp"
 export LDFLAGS+=" -L$PWD/dummy_libs -fuse-ld=lld" 
 
 # Create dummy libraries so we won't have to remove them in OpenJDK makefiles
