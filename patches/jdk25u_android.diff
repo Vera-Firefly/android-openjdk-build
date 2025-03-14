@@ -598,7 +598,7 @@ index ff416d47e..fca2f6aa4 100644
 +  }
 +};
 +ifaddrs_storage* new_ifaddrs_storage(ifaddrs** list) {
-+  ifaddrs_storage *storage;
++  ifaddrs_storage *storage = nullptr;
 +  memset(storage, 0, sizeof(*storage));
 +  // push_front onto `list`.
 +  storage->ifa.ifa_next = *list;
