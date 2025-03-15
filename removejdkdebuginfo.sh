@@ -35,6 +35,7 @@ $targetpath/buildjdk/jdk/bin/jlink \
 $JLINK_STRIP_ARG \
 --no-man-pages \
 --no-header-files \
+--endian=little \
 --release-info=jdkout/release \
 --compress=0 
 
