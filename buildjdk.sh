@@ -12,7 +12,7 @@ else
   if [[ "$TARGET_JDK" == "x86" ]]; then
      export CFLAGS+=" -O3 -mstackrealign"
   else
-     export CFLAGS+=" -O3 -flto=thin"
+     export CFLAGS+=" -O3"
   fi
 fi
 
@@ -97,7 +97,7 @@ bash ./configure \
     --enable-option-checking=fatal \
     --enable-headless-only=yes \
     --with-jvm-variants=$JVM_VARIANTS \
-    --with-jvm-features=-dtrace,-zero,-vm-structs,-epsilongc,link-time-opt,opt-size \
+    --with-jvm-features=-dtrace,-zero,-vm-structs,link-time-opt,opt-size \
     --with-cups-include=$CUPS_DIR \
     --with-devkit=$TOOLCHAIN \
     --with-native-debug-symbols=external \
