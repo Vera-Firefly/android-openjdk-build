@@ -92,7 +92,7 @@ index 6a963ac2c..349ff126b 100644
 --- a/make/common/JdkNativeCompilation.gmk
 +++ b/make/common/JdkNativeCompilation.gmk
 @@ -41,5 +41,11 @@ FindSrcDirsForLib += \
- $(eval $(call IncludeCustomExtension, common/JdkNativeCompilation.gmk))
+ include NativeCompilation.gmk
  
 +ifeq ($(OPENJDK_TARGET_OS), android)
 +  FindSrcDirsForLib += \
@@ -190,33 +190,34 @@ index ae985b315..c93425263 100644
 --- a/make/modules/java.instrument/Lib.gmk
 +++ b/make/modules/java.instrument/Lib.gmk
 @@ -36,6 +36,8 @@ endif
-     NAME := instrument, \
      OPTIMIZATION := LOW, \
 +    EXTRA_SRC := java.base:libtinyiconv, \
+     CFLAGS := $(ICONV_CFLAGS), \
      CFLAGS_windows := -Dstrcasecmp=stricmp, \
      CFLAGS_debug := -DJPLIS_LOGGING, \
      CFLAGS_release := -DNO_JPLIS_LOGGING, \
 +    CXXFLAGS := $(CXXFLAGS_JDKLIB), \
-     JDK_LIBS := java.base:libjava java.base:libjli java.base:libjvm, \
+     LDFLAGS := $(ICONV_LDFLAGS), \
 diff --git a/make/modules/jdk.hotspot.agent/Lib.gmk b/make/modules/jdk.hotspot.agent/Lib.gmk
 index 478d199e5..9477a96c9 100644
 --- a/make/modules/jdk.hotspot.agent/Lib.gmk
 +++ b/make/modules/jdk.hotspot.agent/Lib.gmk
-@@ -76,3 +76,3 @@ $(eval $(call SetupJdkLibrary, BUILD_LIBSA, \
+@@ -76,5 +76,5 @@ $(eval $(call SetupJdkLibrary, BUILD_LIBSA, \
  ))
  
 -TARGETS += $(BUILD_LIBSAPROC)
 +# TARGETS += $(BUILD_LIBSAPROC)
+ 
+ ################################################################################
 diff --git a/make/modules/jdk.jdwp.agent/Lib.gmk b/make/modules/jdk.jdwp.agent/Lib.gmk
 index b5ea40803..f92adb8d3 100644
 --- a/make/modules/jdk.jdwp.agent/Lib.gmk
 +++ b/make/modules/jdk.jdwp.agent/Lib.gmk
-@@ -52,3 +52,5 @@ $(eval $(call SetupJdkLibrary, BUILD_LIBJDWP, \
+@@ -52,2 +52,4 @@ $(eval $(call SetupJdkLibrary, BUILD_LIBJDWP, \
      OPTIMIZATION := LOW, \
-     CFLAGS := -DJDWP_LOGGING, \
 +    CXXFLAGS := $(CXXFLAGS_JDKLIB), \
 +    EXTRA_SRC := java.base:libtinyiconv, \
-     DISABLED_WARNINGS_gcc_eventFilter.c := unused-variable, \
+     CFLAGS := -DJDWP_LOGGING $(ICONV_CFLAGS), \
 diff --git a/src/hotspot/cpu/arm/icache_arm.cpp b/src/hotspot/cpu/arm/icache_arm.cpp
 index 61fcb8a35..93d2ad4f4 100644
 --- a/src/hotspot/cpu/arm/icache_arm.cpp
@@ -2333,7 +2334,6 @@ index fdc7aad3d..05e258c87 100644
 --- a/src/hotspot/os/linux/os_linux.cpp
 +++ b/src/hotspot/os/linux/os_linux.cpp
 @@ -138,7 +138,7 @@
- // for timer info max values which include all bits
  #define ALL_64_BITS CONST64(0xFFFFFFFFFFFFFFFF)
  
 -#if defined(MUSL_LIBC) || defined(__ANDROID__)
@@ -2342,72 +2342,7 @@ index fdc7aad3d..05e258c87 100644
  // and musl libc doesn't implement it.
 -static void *dlvsym(void *handle,
 +void *dlvsym(void *handle,
-diff --git a/make/hotspot/lib/CompileJvm.gmk b/make/hotspot/lib/CompileJvm.gmk
-index ff4c7fd..f7c31c3 100644
---- a/make/hotspot/lib/CompileJvm.gmk
-+++ b/make/hotspot/lib/CompileJvm.gmk
-@@ -113,10 +113,10 @@ DISABLED_WARNINGS_microsoft := 4624 4244 4291 4146 4127 4722
- 
- # ARM source selection
- 
--ifeq ($(call And, $(call isTargetOs, linux) $(call isTargetCpu, arm)), true)
-+ifeq ($(call And, $(call isTargetOs, linux android) $(call isTargetCpu, arm)), true)
-   JVM_EXCLUDE_PATTERNS += arm_64
- 
--else ifeq ($(call And, $(call isTargetOs, linux) $(call isTargetCpu, aarch64)), true)
-+else ifeq ($(call And, $(call isTargetOs, linux android) $(call isTargetCpu, aarch64)), true)
-   # For 64-bit arm builds, we use the 64 bit hotspot/src/cpu/arm
-   # hotspot sources if HOTSPOT_TARGET_CPU_ARCH is set to arm.
-   # Exclude the aarch64 and 32 bit arm files for this build.
-@@ -125,7 +125,7 @@ else ifeq ($(call And, $(call isTargetOs, linux) $(call isTargetCpu, aarch64)),
-   endif
- endif
- 
--ifeq ($(call isTargetOs, linux macosx windows), true)
-+ifeq ($(call isTargetOs, linux android macosx windows), true)
-   JVM_PRECOMPILED_HEADER := $(TOPDIR)/src/hotspot/share/precompiled/precompiled.hpp
- endif
- 
-@@ -155,7 +155,7 @@ ifeq ($(call isTargetOs, windows), true)
-   JVM_LDFLAGS += -def:$(WIN_EXPORT_FILE)
- endif
- 
--ifeq ($(call isTargetOs, linux), true)
-+ifeq ($(call isTargetOs, linux android), true)
-   HOTSPOT_VERSION_SCRIPT := $(TOPDIR)/make/data/hotspot-symbols/version-script-$(TOOLCHAIN_TYPE).txt
- 
-   JVM_LDFLAGS += -Wl,-version-script=$(HOTSPOT_VERSION_SCRIPT)
-diff --git a/make/common/native/Link.gmk b/make/common/native/Link.gmk
-index 1461f73..2e3402a 100644
---- a/make/common/native/Link.gmk
-+++ b/make/common/native/Link.gmk
-@@ -69,7 +69,7 @@ endef
- ################################################################################
- define CreateStaticLibrary
-   # Include partial linking when building the static library with clang on linux
--  ifeq ($(call isTargetOs, linux), true)
-+  ifeq ($(call isTargetOs, linux android), true)
-     ifneq ($(findstring $(TOOLCHAIN_TYPE), clang), )
-       $1_ENABLE_PARTIAL_LINKING := true
-     endif
-@@ -161,7 +161,7 @@ define CreateDynamicLibraryOrExecutable
- 	        $$($1_SYSROOT_LDFLAGS) -o $$($1_TARGET) $$($1_LD_OBJ_ARG) \
- 	        $$($1_LIBS) $$($1_EXTRA_LIBS))
-         ifeq ($$($1_CREATE_DEBUGINFO), true)
--          ifeq ($(call isTargetOs, linux), true)
-+          ifeq ($(call isTargetOs, linux android), true)
-             # This cannot be run separately since it updates the original target
-             # file.
- 	    $$(call ExecuteWithLog, $$($1_OBJECT_DIR)/$$($1_SAFE_NAME)_create_debuginfo, \
-@@ -182,7 +182,7 @@ define CreateDynamicLibraryOrExecutable
- 	      $$($1_STRIP) $$($1_STRIPFLAGS) $$($1_TARGET))
-         endif
-         ifeq ($$($1_CREATE_DEBUGINFO), true)
--          ifeq ($(call isTargetOs, linux), true)
-+          ifeq ($(call isTargetOs, linux android), true)
-             # Run this after strip is called, since strip can sometimes mangle
-             # the embedded debuglink, which we want to avoid.
- 	    $$(call ExecuteWithLog, $$($1_OBJECT_DIR)/$$($1_SAFE_NAME)_add_debuginfo_link, \
+                     const char *symbol,
 diff --git a/make/data/hotspot-symbols/version-script-clang.txt b/make/data/hotspot-symbols/version-script-clang.txt
 index 351d64f..08ab416 100644
 --- a/make/data/hotspot-symbols/version-script-clang.txt
@@ -2437,119 +2372,6 @@ index e5929ab..08597d5 100644
  # INCLUDE_SUFFIX_* is only meant for including the proper
  # platform files. Don't use it to guard code. Use the value of
  # HOTSPOT_TARGET_CPU_DEFINE etc. instead.
-diff --git a/make/hotspot/lib/JvmOverrideFiles.gmk b/make/hotspot/lib/JvmOverrideFiles.gmk
-index 6a513e1..02b5c8a 100644
---- a/make/hotspot/lib/JvmOverrideFiles.gmk
-+++ b/make/hotspot/lib/JvmOverrideFiles.gmk
-@@ -51,7 +51,7 @@ ifneq ($(FDLIBM_CFLAGS), )
-   LIBJVM_FDLIBM_COPY_OPT_FLAG := $(CXX_O_FLAG_NORM)
- endif
- 
--ifeq ($(call isTargetOs, linux), true)
-+ifeq ($(call isTargetOs, linux android), true)
-   BUILD_LIBJVM_sharedRuntimeTrig.cpp_CXXFLAGS := -DNO_PCH $(FDLIBM_CFLAGS) $(LIBJVM_FDLIBM_COPY_OPT_FLAG)
-   BUILD_LIBJVM_sharedRuntimeTrans.cpp_CXXFLAGS := -DNO_PCH $(FDLIBM_CFLAGS) $(LIBJVM_FDLIBM_COPY_OPT_FLAG)
- 
-diff --git a/make/modules/java.base/Launcher.gmk b/make/modules/java.base/Launcher.gmk
-index 024c1c4..d2eaf63 100644
---- a/make/modules/java.base/Launcher.gmk
-+++ b/make/modules/java.base/Launcher.gmk
-@@ -64,7 +64,7 @@ $(eval $(call SetupBuildLauncher, keytool, \
-     MAIN_CLASS := sun.security.tools.keytool.Main, \
- ))
- 
--ifeq ($(call isTargetOs, linux), true)
-+ifeq ($(call isTargetOs, linux android), true)
-   ##############################################################################
-   ## Build jexec
-   ##############################################################################
-diff --git a/make/modules/java.base/lib/CoreLibraries.gmk b/make/modules/java.base/lib/CoreLibraries.gmk
-index 61ac495..f65c0be 100644
---- a/make/modules/java.base/lib/CoreLibraries.gmk
-+++ b/make/modules/java.base/lib/CoreLibraries.gmk
-@@ -28,7 +28,7 @@
- ################################################################################
- 
- LIBVERIFY_OPTIMIZATION := HIGH
--ifeq ($(call isTargetOs, linux)+$(COMPILE_WITH_DEBUG_SYMBOLS), true+true)
-+ifeq ($(call isTargetOs, linux android)+$(COMPILE_WITH_DEBUG_SYMBOLS), true+true)
-   LIBVERIFY_OPTIMIZATION := LOW
- endif
- 
-diff --git a/make/modules/java.desktop/lib/AwtLibraries.gmk b/make/modules/java.desktop/lib/AwtLibraries.gmk
-index 5ba7c81..86a55e8 100644
---- a/make/modules/java.desktop/lib/AwtLibraries.gmk
-+++ b/make/modules/java.desktop/lib/AwtLibraries.gmk
-@@ -390,7 +390,7 @@ ifeq ($(call isTargetOs, macosx), true)
-   LIBJAWT_EXCLUDE_SRC_PATTERNS := /unix/
- endif
- 
--ifeq ($(call isTargetOs, linux)+$(ENABLE_HEADLESS_ONLY), true+true)
-+ifeq ($(call isTargetOs, linux android)+$(ENABLE_HEADLESS_ONLY), true+true)
-   LIBJAWT_CFLAGS += -DHEADLESS
- endif
- 
-diff --git a/make/modules/java.management/Lib.gmk b/make/modules/java.management/Lib.gmk
-index b9f79da..655ccb2 100644
---- a/make/modules/java.management/Lib.gmk
-+++ b/make/modules/java.management/Lib.gmk
-@@ -30,7 +30,7 @@ include LibCommon.gmk
- ################################################################################
- 
- LIBMANAGEMENT_OPTIMIZATION := HIGH
--ifeq ($(call isTargetOs, linux)+$(COMPILE_WITH_DEBUG_SYMBOLS), true+true)
-+ifeq ($(call isTargetOs, linux android)+$(COMPILE_WITH_DEBUG_SYMBOLS), true+true)
-   LIBMANAGEMENT_OPTIMIZATION := LOW
- endif
- 
-diff --git a/make/modules/jdk.incubator.vector/Lib.gmk b/make/modules/jdk.incubator.vector/Lib.gmk
-index 69da7ed..cae854a 100644
---- a/make/modules/jdk.incubator.vector/Lib.gmk
-+++ b/make/modules/jdk.incubator.vector/Lib.gmk
-@@ -56,7 +56,7 @@ ifeq ($(call isTargetOs, linux)+$(call isTargetCpu, riscv64)+$(INCLUDE_COMPILER2
-   TARGETS += $(BUILD_LIBSLEEF)
- endif
- 
--ifeq ($(call isTargetOs, linux)+$(call isTargetCpu, aarch64)+$(INCLUDE_COMPILER2), true+true+true)
-+ifeq ($(call isTargetOs, linux android)+$(call isTargetCpu, aarch64)+$(INCLUDE_COMPILER2), true+true+true)
-   $(eval $(call SetupJdkLibrary, BUILD_LIBSLEEF, \
-       NAME := sleef, \
-       OPTIMIZATION := HIGH, \
-diff --git a/make/modules/jdk.jpackage/Lib.gmk b/make/modules/jdk.jpackage/Lib.gmk
-index 33d1033..eb4132a 100644
---- a/make/modules/jdk.jpackage/Lib.gmk
-+++ b/make/modules/jdk.jpackage/Lib.gmk
-@@ -36,7 +36,7 @@ JPACKAGE_CXXFLAGS_windows := -EHsc $(JPACKAGE_CFLAGS_windows)
- ## Build jpackageapplauncher
- ################################################################################
- 
--ifeq ($(call isTargetOs, linux), true)
-+ifeq ($(call isTargetOs, linux android), true)
-   JPACKAGEAPPLAUNCHER_LINK_TYPE := C
-   JPACKAGEAPPLAUNCHER_INCLUDE_FILES := %.c
- else
-@@ -74,7 +74,7 @@ $(eval $(call SetupJdkExecutable, BUILD_JPACKAGEAPPLAUNCHER, \
- 
- TARGETS += $(BUILD_JPACKAGEAPPLAUNCHER)
- 
--ifeq ($(call isTargetOs, linux), true)
-+ifeq ($(call isTargetOs, linux android), true)
-   ##############################################################################
-   ## Build libjpackageapplauncheraux
-   ##############################################################################
-diff --git a/make/modules/jdk.management/Lib.gmk b/make/modules/jdk.management/Lib.gmk
-index cb65b37..a033b4c 100644
---- a/make/modules/jdk.management/Lib.gmk
-+++ b/make/modules/jdk.management/Lib.gmk
-@@ -37,7 +37,7 @@ ifeq ($(call isTargetOs, windows), true)
- endif
- 
- LIBMANAGEMENT_EXT_OPTIMIZATION := HIGH
--ifeq ($(call isTargetOs, linux)+$(COMPILE_WITH_DEBUG_SYMBOLS), true+true)
-+ifeq ($(call isTargetOs, linux android)+$(COMPILE_WITH_DEBUG_SYMBOLS), true+true)
-   LIBMANAGEMENT_EXT_OPTIMIZATION := LOW
- endif
- 
 diff --git a/src/hotspot/os/posix/os_posix.cpp b/src/hotspot/os/posix/os_posix.cpp
 index 61214a4..87e3114 100644
 --- a/src/hotspot/os/posix/os_posix.cpp
@@ -2614,12 +2436,3 @@ index b1b69c8..972f9e3 100644
  }
  
  #define ROUNDUP(x, y)  ((((x)+((y)-1))/(y))*(y))
-@@ -390,7 +390,7 @@ ifeq ($(call isTargetOs, macosx), true)
-   LIBJAWT_EXCLUDE_SRC_PATTERNS := /unix/
- endif
- 
--ifeq ($(call isTargetOs, linux)+$(ENABLE_HEADLESS_ONLY), true+true)
-+ifeq ($(call isTargetOs, linux android)+$(ENABLE_HEADLESS_ONLY), true+true)
-   LIBJAWT_CFLAGS += -DHEADLESS
- endif
- 
