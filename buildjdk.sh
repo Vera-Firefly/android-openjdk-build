@@ -48,7 +48,7 @@ platform_args="--with-toolchain-type=clang \
   BUILD_AS="$AS" \
   OBJCOPY=${OBJCOPY} \
   CXXFILT=${CXXFILT} \
-  LD=$TOOLCHAIN/bin/lld \
+  LD=$TOOLCHAIN/bin/ld \
   "
 
 if [[ "$TARGET_JDK" == "x86" ]]; then
