@@ -98,7 +98,6 @@ bash ./configure \
     --disable-warnings-as-errors \
     --enable-option-checking=fatal \
     --enable-headless-only=yes \
-    --linktime-gc
     --with-jvm-variants=$JVM_VARIANTS \
     --with-jvm-features=-dtrace,-zero,-vm-structs,link-time-opt,opt-size \
     --with-cups-include=$CUPS_DIR \
