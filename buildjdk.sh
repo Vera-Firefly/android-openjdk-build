@@ -48,7 +48,7 @@ platform_args="--with-toolchain-type=clang \
   BUILD_AS="$AS" \
   OBJCOPY=${OBJCOPY} \
   CXXFILT=${CXXFILT} \
-  LD=$TOOLCHAIN/bin/ld \
+  LD=$TOOLCHAIN/bin/ld.lld \
   "
 
 if [[ "$TARGET_JDK" == "x86" ]]; then
@@ -99,7 +99,8 @@ bash ./configure \
     --enable-option-checking=fatal \
     --enable-headless-only=yes \
     --with-jvm-variants=$JVM_VARIANTS \
-    --with-jvm-features=-dtrace,-zero,-vm-structs,link-time-opt,opt-size \
+    --with-jvm-features=-dtrace,-zero,-vm-structs,link-time-opt \
+    --linktime-gc=yes \
     --with-cups-include=$CUPS_DIR \
     --with-devkit=$TOOLCHAIN \
     --with-native-debug-symbols=external \
