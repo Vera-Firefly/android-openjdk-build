@@ -100,7 +100,7 @@ bash ./configure \
     --enable-headless-only=yes \
     --with-jvm-variants=$JVM_VARIANTS \
     --with-jvm-features=-dtrace,-zero,-vm-structs,link-time-opt \
-    --linktime-gc=yes \
+    --enable-linktime-gc \
     --with-cups-include=$CUPS_DIR \
     --with-devkit=$TOOLCHAIN \
     --with-native-debug-symbols=external \
