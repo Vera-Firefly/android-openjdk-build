@@ -35,6 +35,7 @@ makearch () {
   
   #mv lib/$1 "$work1"/lib/;
   mv lib/jexec "$work1"/lib/;
+  mv lib/jvm.cfg "$work1"/lib/;
   
   # server contains the libjvm.so
   copyjvmlib server $2
@@ -60,6 +61,7 @@ makeuni () {
   rm -rf bin;
   rm -rf lib/server;
   rm lib/jexec;
+  rm lib/jvm.cfg;
   find ./ -name '*.so' -execdir rm {} \; # Remove arch specific shared objects
   rm release
   
