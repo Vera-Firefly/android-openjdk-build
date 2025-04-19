@@ -17,6 +17,13 @@ mkdir -p "$work"
 mkdir -p "$work1"
 mkdir -p "$out"
 
+copyjvmlib() {
+  if [[ -d lib/$1 ]]; then
+    echo "Moving $1 VM for $2"
+    mv lib/$1 "$work1"/lib/;
+  fi
+}
+
 # here comes a not-so-complicated functions to easily make desired arch
 ## Usage: makearch [jre_libs_dir_name] [name_in_tarball]
 makearch () {
