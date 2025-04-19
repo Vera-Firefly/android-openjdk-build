@@ -37,7 +37,8 @@ makearch () {
   mv lib/jexec "$work1"/lib/;
   
   # server contains the libjvm.so
-  mv lib/$JVM_VARIANTS "$work1"/lib/;
+  copyjvmlib server $2
+  copyjvmlib client $2
   
   # All the other .so files are at the root of the lib folder
   find ./ -name '*.so' -execdir mv {} "$work1"/lib/{} \;
