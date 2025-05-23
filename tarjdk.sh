@@ -7,7 +7,7 @@ git clone --depth 1 https://github.com/termux/termux-elf-cleaner || true
 cd termux-elf-cleaner
 mkdir build
 cd build
-export CFLAGS=-D__ANDROID_API__=24
+export CFLAGS=-D__ANDROID_API__=${API}
 cmake ..
 make -j4
 unset CFLAGS
@@ -23,8 +23,8 @@ exit 1
 ' sh {} \; -print
 }
 
-findexec jreout | xargs ./termux-elf-cleaner/build/termux-elf-cleaner --api-level 24
-findexec jdkout | xargs ./termux-elf-cleaner/build/termux-elf-cleaner --api-level 24
+findexec jreout | xargs ./termux-elf-cleaner/build/termux-elf-cleaner --api-level ${API}
+findexec jdkout | xargs ./termux-elf-cleaner/build/termux-elf-cleaner --api-level ${API}
 
 cp -rv jre_override/lib/* jreout/lib/ || true
 cp -rv jre_override/lib/* jdkout/lib/ || true
