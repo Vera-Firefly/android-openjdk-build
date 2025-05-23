@@ -139,16 +139,13 @@ diff --git a/make/hotspot/lib/JvmOverrideFiles.gmk b/make/hotspot/lib/JvmOverrid
 index 377018cdb..c1c624896 100644
 --- a/make/hotspot/lib/JvmOverrideFiles.gmk
 +++ b/make/hotspot/lib/JvmOverrideFiles.gmk
-@@ -62,7 +62,8 @@ ifeq ($(call isTargetOs, linux), true)
- 	#
-   endif
+@@ -66,4 +66,5 @@ ifeq ($(call isTargetOs, linux), true)
+       #
  
 -  ifeq ($(call isTargetCpu, x86), true)
 +  #ifeq ($(call isTargetCpu, x86), true)
 +  ifeq (false, true)
      # Performance measurements show that by compiling GC related code, we could
-     # significantly reduce the GC pause time on 32 bit Linux/Unix platforms by
-     # compiling without the PIC flag (-fPIC on linux).
 diff --git a/make/modules/java.base/lib/CoreLibraries.gmk b/make/modules/java.base/lib/CoreLibraries.gmk
 index 186eff3d6..ca76357b0 100644
 --- a/make/modules/java.base/lib/CoreLibraries.gmk
@@ -231,18 +228,6 @@ index 61fcb8a35..93d2ad4f4 100644
    return magic;
  }
  
-diff --git a/src/hotspot/os/linux/os_linux.cpp b/src/hotspot/os/linux/os_linux.cpp
-index 42680218d..403d8905b 100644
---- a/src/hotspot/os/linux/os_linux.cpp
-+++ b/src/hotspot/os/linux/os_linux.cpp
-@@ -135,6 +135,6 @@
- #define ALL_64_BITS CONST64(0xFFFFFFFFFFFFFFFF)
- 
--#ifdef MUSL_LIBC
-+#if defined(MUSL_LIBC) || defined(__ANDROID__)
- // dlvsym is not a part of POSIX
- // and musl libc doesn't implement it.
- static void *dlvsym(void *handle,
 @@ -214,6 +214,8 @@ static int clock_tics_per_sec = 100;
  // avoid this
  static bool suppress_primordial_thread_resolution = false;
@@ -2271,9 +2256,8 @@ diff --git a/make/autoconf/flags-cflags.m4 b/make/autoconf/flags-cflags.m4
 index c0626e8f9a45..3cd0550eb314 100644
 --- a/make/autoconf/flags-cflags.m4
 +++ b/make/autoconf/flags-cflags.m4
-@@ -58,13 +58,7 @@ AC_DEFUN([FLAGS_SETUP_SHARED_LIBS],
+@@ -58,12 +58,6 @@ AC_DEFUN([FLAGS_SETUP_SHARED_LIBS],
        SET_SHARED_LIBRARY_NAME='-Wl,-soname=[$]1'
-       SET_SHARED_LIBRARY_MAPFILE='-Wl,-version-script=[$]1'
  
 -      # arm specific settings
 -      if test "x$OPENJDK_TARGET_CPU" = "xarm"; then
@@ -2285,7 +2269,7 @@ index c0626e8f9a45..3cd0550eb314 100644
 +      SET_SHARED_LIBRARY_ORIGIN="-Wl,-z,origin $SET_EXECUTABLE_ORIGIN"
      fi
  
-   elif test "x$TOOLCHAIN_TYPE" = xxlc; then
+   elif test "x$TOOLCHAIN_TYPE" = xmicrosoft; then
 
 diff --git a/make/autoconf/toolchain.m4 b/make/autoconf/toolchain.m4
 index 7a24815..d20a9ff 100644
