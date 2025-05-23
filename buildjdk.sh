@@ -56,7 +56,7 @@ export CFLAGS+=" -O3 -fwhole-program-vtables -fdata-sections -ffunction-sections
 #export LDFLAGS+=" -fuse-ld=lld -Wl,-plugin-opt=-emulated-tls=0 -Wl,--strip-all -fvisibility=hidden -Wl,-Bsymbolic -Wl,-O3 -Wl,--sort-common -Wl,--relax -Wl,--gc-sections -Wl,--as-needed"
 #LTO
 export CFLAGS+=" -flto=auto -fno-emulated-tls"
-export LDFLAGS+=" -flto=auto -O3 -Wl,-plugin-opt=-emulated-tls=0"
+export LDFLAGS+=" -flto=auto -Wl,-plugin-opt=-emulated-tls=0"
 #polly
 export CFLAGS+=" -mllvm -polly -mllvm -polly-vectorizer=stripmine -mllvm -polly-invariant-load-hoisting -mllvm -polly-run-inliner -mllvm -polly-run-dce -mllvm -polly-invariant-load-hoisting -mllvm -polly-run-inliner -mllvm -polly-run-dce -mllvm -polly-parallel -mllvm -polly-scheduling=dynamic -mllvm -hot-cold-split=true -mllvm -polly-detect-keep-going -mllvm -polly-ast-use-context -mllvm -polly-omp-backend=LLVM"
 
