@@ -139,16 +139,13 @@ diff --git a/make/hotspot/lib/JvmOverrideFiles.gmk b/make/hotspot/lib/JvmOverrid
 index 377018cdb..c1c624896 100644
 --- a/make/hotspot/lib/JvmOverrideFiles.gmk
 +++ b/make/hotspot/lib/JvmOverrideFiles.gmk
-@@ -62,7 +62,8 @@ ifeq ($(call isTargetOs, linux), true)
+@@ -62,4 +62,5 @@ ifeq ($(call isTargetOs, linux), true)
  	#
-   endif
  
 -  ifeq ($(call isTargetCpu, x86), true)
 +  #ifeq ($(call isTargetCpu, x86), true)
 +  ifeq (false, true)
      # Performance measurements show that by compiling GC related code, we could
-     # significantly reduce the GC pause time on 32 bit Linux/Unix platforms by
-     # compiling without the PIC flag (-fPIC on linux).
 diff --git a/make/modules/java.base/lib/CoreLibraries.gmk b/make/modules/java.base/lib/CoreLibraries.gmk
 index 186eff3d6..ca76357b0 100644
 --- a/make/modules/java.base/lib/CoreLibraries.gmk
