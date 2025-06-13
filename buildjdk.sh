@@ -52,7 +52,7 @@ AUTOCONF_EXTRA_ARGS+="OBJCOPY=$OBJCOPY \
 #no error
 export CFLAGS+=" -DANDROID -D__ANDROID__=1 -DLE_STANDALONE -Wno-int-conversion -Wno-error=implicit-function-declaration"
 
-export CFLAGS+=" -O3 -fwhole-program-vtables -fdata-sections -ffunction-sections -fmerge-all-constants -ftree-vectorize -fomit-frame-pointer -fvectorize -fslp-vectorize -fno-semantic-interposition -fopenmp -pipe -integrated-as"
+export CFLAGS+=" -O3 -hot-cold-split=true -fwhole-program-vtables -fdata-sections -ffunction-sections -fmerge-all-constants -ftree-vectorize -fomit-frame-pointer -fvectorize -fslp-vectorize -fno-semantic-interposition -fopenmp -pipe -integrated-as"
 export LDFLAGS+=" -fuse-ld=lld -Wl,--strip-all -fvisibility=hidden -Wl,-Bsymbolic -Wl,-O3 -Wl,--sort-common -Wl,--relax -Wl,--gc-sections -Wl,--as-needed"
 #LTO
 export CFLAGS+=" -flto=auto -fno-emulated-tls"
