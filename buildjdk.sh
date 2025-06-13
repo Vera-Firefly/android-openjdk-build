@@ -58,7 +58,7 @@ export LDFLAGS+=" -fuse-ld=lld -Wl,--strip-all -fvisibility=hidden -Wl,-Bsymboli
 export CFLAGS+=" -flto=auto -fno-emulated-tls"
 export LDFLAGS+=" -flto=auto -Wl,--lto-O3 -Wl,-plugin-opt=-emulated-tls=0"
 #polly
-export CFLAGS+=" -mllvm -polly -mllvm -polly-vectorizer=stripmine -mllvm -polly-invariant-load-hoisting -mllvm -polly-run-inliner -mllvm -polly-run-dce -mllvm -polly-parallel -mllvm -polly-scheduling=static -mllvm -polly-detect-keep-going -mllvm -polly-ast-use-context -mllvm -polly-omp-backend=LLVM -mllvm -polly-memory -mllvm -polly-opt-parallelize-parallel -mllvm -polly-opt-outer-loops -mllvm -polly-num-threads=4 -mllvm -polly-scheduling-chunksize=4"
+export CFLAGS+=" -mllvm -polly -mllvm -polly-vectorizer=stripmine -mllvm -polly-invariant-load-hoisting -mllvm -polly-run-inliner -mllvm -polly-run-dce -mllvm -polly-parallel -mllvm -polly-scheduling=static -mllvm -polly-detect-keep-going -mllvm -polly-ast-use-context -mllvm -polly-omp-backend=LLVM -mllvm -polly-num-threads=4 -mllvm -polly-scheduling-chunksize=4"
 export OMP_NUM_THREADS=4
 #fast-math
 export CFLAGS+=" -ffast-math -fno-finite-math-only -fno-signed-zeros -fno-trapping-math -fno-math-errno -freciprocal-math -fno-associative-math"
