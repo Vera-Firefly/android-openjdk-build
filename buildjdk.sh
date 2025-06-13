@@ -16,7 +16,7 @@ fi
 
 if [[ "$TARGET_JDK" == "aarch64" ]]
 then
-   export CFLAGS+=" -march=armv8-a+simd"
+   export CFLAGS+=" -march=armv8-a+simd+crc+fp16+dotprod+lse"
 fi
 
 ln -s -f /usr/include/X11 $ANDROID_INCLUDE/
@@ -52,13 +52,15 @@ AUTOCONF_EXTRA_ARGS+="OBJCOPY=$OBJCOPY \
 #no error
 export CFLAGS+=" -DANDROID -D__ANDROID__=1 -DLE_STANDALONE -Wno-int-conversion -Wno-error=implicit-function-declaration"
 
-export CFLAGS+=" -O3 -fwhole-program-vtables -fdata-sections -ffunction-sections -fmerge-all-constants -ftree-vectorize -fomit-frame-pointer -fno-semantic-interposition -fopenmp -pipe -integrated-as"
-export LDFLAGS+=" -fuse-ld=lld -Wl,-plugin-opt=-emulated-tls=0 -Wl,--strip-all -fvisibility=hidden -Wl,-Bsymbolic -Wl,-O3 -Wl,--sort-common -Wl,--relax -Wl,--gc-sections -Wl,--as-needed"
+export CFLAGS+=" -O3 -fwhole-program-vtables -fdata-sections -ffunction-sections -fmerge-all-constants -ftree-vectorize -fomit-frame-pointer -fvectorize -fslp-vectorize -fno-semantic-interposition -fopenmp -pipe -integrated-as"
+export LDFLAGS+=" -fuse-ld=lld -Wl,--strip-all -fvisibility=hidden -Wl,-Bsymbolic -Wl,-O3 -Wl,--sort-common -Wl,--relax -Wl,--gc-sections -Wl,--as-needed"
 #LTO
 export CFLAGS+=" -flto=auto -fno-emulated-tls"
-export LDFLAGS+=" -flto=auto -O3 -Wl,-plugin-opt=-emulated-tls=0"
+export LDFLAGS+=" -flto=auto -Wl,--lto-O3 -Wl,-plugin-opt=-emulated-tls=0"
 #polly
-export CFLAGS+=" -mllvm -polly -mllvm -polly-vectorizer=stripmine -mllvm -polly-invariant-load-hoisting -mllvm -polly-run-inliner -mllvm -polly-run-dce -mllvm -polly-invariant-load-hoisting -mllvm -polly-run-inliner -mllvm -polly-run-dce -mllvm -polly-parallel -mllvm -polly-scheduling=dynamic -mllvm -hot-cold-split=true -mllvm -polly-detect-keep-going -mllvm -polly-ast-use-context -mllvm -polly-omp-backend=LLVM"
+export CFLAGS+=" -mllvm -polly -mllvm -polly-vectorizer=stripmine -mllvm -polly-invariant-load-hoisting -mllvm -polly-run-inliner -mllvm -polly-run-dce -mllvm -polly-parallel -mllvm -polly-scheduling=static -mllvm -polly-detect-keep-going -mllvm -polly-ast-use-context -mllvm -polly-omp-backend=LLVM -mllvm -polly-memory -mllvm -polly-opt-parallelize-parallel -mllvm -polly-opt-outer-loops -polly-num-threads=4"
+#fast-math
+export CFLAGS+=" -ffast-math -fno-finite-math-only -fno-signed-zeros -fno-trapping-math -fno-math-errno -freciprocal-math -fno-associative-math"
 
 export LDFLAGS+=" -L$PWD/dummy_libs" 
 
