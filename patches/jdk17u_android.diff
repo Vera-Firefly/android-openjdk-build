@@ -306,25 +306,6 @@ index 59b24d0e4..d35dbfd17 100644
 +# TARGETS += $(BUILD_LIBSA)
  
  ################################################################################
-diff --git a/make/modules/jdk.jdwp.agent/Lib.gmk b/make/modules/jdk.jdwp.agent/Lib.gmk
-index aef358c14..7b9e5097c 100644
---- a/make/modules/jdk.jdwp.agent/Lib.gmk
-+++ b/make/modules/jdk.jdwp.agent/Lib.gmk
-@@ -52,12 +52,14 @@ $(eval $(call SetupJdkLibrary, BUILD_LIBJDWP, \
-     NAME := jdwp, \
-     OPTIMIZATION := LOW, \
-     CFLAGS := $(CFLAGS_JDKLIB) -DJDWP_LOGGING, \
-+    CXXFLAGS := $(CXXFLAGS_JDKLIB), \
-     DISABLED_WARNINGS_gcc := unused-function, \
-     DISABLED_WARNINGS_clang := sometimes-uninitialized format-nonliteral \
-         self-assign, \
-     EXTRA_HEADER_DIRS := \
-       include \
-       libjdwp/export, \
-+    EXTRA_SRC := java.base:libtinyiconv, \
-     LDFLAGS := $(LDFLAGS_JDKLIB) \
-         $(call SET_SHARED_LIBRARY_ORIGIN), \
-     LIBS := $(JDKLIB_LIBS), \
 diff --git a/make/modules/jdk.net/Lib.gmk b/make/modules/jdk.net/Lib.gmk
 index 3c9d1055f..e4260da69 100644
 --- a/make/modules/jdk.net/Lib.gmk
@@ -2603,3 +2584,23 @@ index 4ec11a136..01b85db4d 100644
  
      /*
       *  OK we may have the stack available in the kernel,
+diff --git a/make/modules/jdk.jdwp.agent/Lib.gmk b/make/modules/jdk.jdwp.agent/Lib.gmk
+index 0a041fed9c8..42f4e708b76 100644
+--- a/make/modules/jdk.jdwp.agent/Lib.gmk
++++ b/make/modules/jdk.jdwp.agent/Lib.gmk
+@@ -52,6 +52,7 @@ $(eval $(call SetupJdkLibrary, BUILD_LIBJDWP, \
+     NAME := jdwp, \
+     OPTIMIZATION := LOW, \
+     CFLAGS := $(CFLAGS_JDKLIB) -DJDWP_LOGGING, \
++    CXXFLAGS := $(CXXFLAGS_JDKLIB), \
+     DISABLED_WARNINGS_gcc := unused-function, \
+     DISABLED_WARNINGS_clang := sometimes-uninitialized format-nonliteral \
+         self-assign, \
+@@ -59,6 +60,7 @@ $(eval $(call SetupJdkLibrary, BUILD_LIBJDWP, \
+     EXTRA_HEADER_DIRS := \
+       include \
+       libjdwp/export, \
++    EXTRA_SRC := java.base:libtinyiconv, \
+     LDFLAGS := $(LDFLAGS_JDKLIB) \
+         $(call SET_SHARED_LIBRARY_ORIGIN), \
+     LIBS := $(JDKLIB_LIBS), \
