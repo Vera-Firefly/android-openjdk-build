@@ -3,42 +3,72 @@ set -e
 . setdevkitpath.sh
 
 export FREETYPE_DIR=$PWD/freetype-$BUILD_FREETYPE_VERSION/build_android-$TARGET_SHORT
-export CUPS_DIR=$PWD/cups-2.2.4
-export CFLAGS+=" -DLE_STANDALONE" # -I$FREETYPE_DIR -I$CUPS_DI
+export CUPS_DIR=$PWD/cups
+
 if [[ "$TARGET_JDK" == "arm" ]]
 then
-  export CFLAGS+=" -O3 -D__thumb__"
+  export CFLAGS+=" -D__thumb__"
+  export buildjdk_ld="$TOOLCHAIN/bin/ld"
 else
   if [[ "$TARGET_JDK" == "x86" ]]; then
-     export CFLAGS+=" -O3 -mstackrealign"
-  else
-     export CFLAGS+=" -O3"
+     export CFLAGS+=" -mstackrealign"
   fi
+  export buildjdk_ld="$thecxx"
 fi
 
-# if [[ "$TARGET_JDK" == "aarch32" ]] || [[ "$TARGET_JDK" == "aarch64" ]]
-# then
-#   export CFLAGS+=" -march=armv7-a+neon"
-# fi
+if [[ "$TARGET_JDK" == "aarch64" ]]
+then
+   export CFLAGS+=" -march=armv8-a+simd+crc+fp16+dotprod+lse"
+fi
 
-# It isn't good, but need make it build anyways
-# cp -R $CUPS_DIR/* $ANDROID_INCLUDE/
-
-# cp -R /usr/include/X11 $ANDROID_INCLUDE/
-# cp -R /usr/include/fontconfig $ANDROID_INCLUDE/
-
-chmod +x android-wrapped-clang
-chmod +x android-wrapped-clang++
 ln -s -f /usr/include/X11 $ANDROID_INCLUDE/
 ln -s -f /usr/include/fontconfig $ANDROID_INCLUDE/
-platform_args="--with-toolchain-type=gcc \
+platform_args="--with-toolchain-type=clang \
   --with-freetype-include=$FREETYPE_DIR/include/freetype2 \
   --with-freetype-lib=$FREETYPE_DIR/lib \
+  OBJDUMP=${OBJDUMP} \
+  STRIP=${STRIP} \
+  NM=${NM} \
+  AR=${AR} \
+  BUILD_NM=${NM} \
+  BUILD_AR=${AR} \
+  BUILD_STRIP=$STRIP \
+  BUILD_OBJCOPY=$OBJCOPY \
+  BUILD_AS="$AS" \
+  OBJCOPY=${OBJCOPY} \
+  CXXFILT=${CXXFILT} \
+  LD=$buildjdk_ld \
+  READELF=$TOOLCHAIN/bin/llvm-readelf \
   "
-AUTOCONF_x11arg="--x-includes=$ANDROID_INCLUDE/X11"
 
-export CFLAGS+=" -DANDROID"
-export LDFLAGS+=" -L$PWD/dummy_libs"
+if [[ "$TARGET_JDK" == "x86" ]]; then
+    platform_args+="--build=x86_64-unknown-linux-gnu \
+    "
+fi
+
+AUTOCONF_x11arg="--x-includes=$ANDROID_INCLUDE/X11"
+AUTOCONF_EXTRA_ARGS+="OBJCOPY=$OBJCOPY \
+  AR=$AR \
+  STRIP=$STRIP \
+  "
+
+#no error
+export CFLAGS+=" -DANDROID -D__ANDROID__=1 -DLE_STANDALONE -Wno-int-conversion -Wno-error=implicit-function-declaration -Wno-unused-command-line-argument"
+
+export CFLAGS+=" -O3 -fdata-sections -ffunction-sections -pipe -integrated-as -pthread -stdlib=libc++"
+export LDFLAGS+=" -fuse-ld=lld -Wl,--strip-all -Wl,-O3 -Wl,--gc-sections -Wl,--as-needed"
+#LTO
+if [[ "$TARGET_JDK" != "arm" ]]
+then
+#export CFLAGS+=" -flto=thin -fno-emulated-tls -fwhole-program-vtables"
+#export LDFLAGS+=" -flto=thin"
+fi
+#polly
+export CFLAGS+=" -mllvm -polly -mllvm -polly-vectorizer=stripmine -mllvm -polly-invariant-load-hoisting -mllvm -polly-run-inliner -mllvm -polly-run-dce -mllvm -polly-parallel -mllvm -polly-scheduling=static -mllvm -polly-detect-keep-going -mllvm -polly-ast-use-context -mllvm -polly-num-threads=4 -mllvm -polly-scheduling-chunksize=4"
+#fast-math
+#export CFLAGS+=" -ffast-math -fno-finite-math-only -fno-signed-zeros -fno-trapping-math -fno-math-errno -freciprocal-math -fno-associative-math"
+
+export LDFLAGS+=" -L$PWD/dummy_libs" 
 
 # Create dummy libraries so we won't have to remove them in OpenJDK makefiles
 mkdir -p dummy_libs
@@ -62,6 +92,8 @@ git apply --reject --whitespace=fix ../patches/jdk11u_android.diff || echo "git 
 
 bash ./configure \
     --with-version-pre=- \
+    --with-version-opt="" \
+    --with-boot-jdk-jvmargs="-Xmx3G -XX:+UseG1GC" \
     --openjdk-target=$TARGET \
     --with-extra-cflags="$CFLAGS" \
     --with-extra-cxxflags="$CFLAGS" \
@@ -71,7 +103,7 @@ bash ./configure \
     --enable-option-checking=fatal \
     --enable-headless-only=yes \
     --with-jvm-variants=$JVM_VARIANTS \
-    --with-jvm-features=-dtrace,-zero,-vm-structs,-epsilongc \
+    --with-jvm-features=-dtrace,-zero,-vm-structs,-epsilongc,link-time-opt,opt-size \
     --with-cups-include=$CUPS_DIR \
     --with-devkit=$TOOLCHAIN \
     --with-native-debug-symbols=external \
@@ -87,7 +119,7 @@ if [[ "$error_code" -ne 0 ]]; then
   exit $error_code
 fi
 
-jobs=4
+jobs=$(nproc)
 
 cd build/${JVM_PLATFORM}-${TARGET_JDK}-normal-${JVM_VARIANTS}-${JDK_DEBUG_LEVEL}
 make JOBS=$jobs images || \
