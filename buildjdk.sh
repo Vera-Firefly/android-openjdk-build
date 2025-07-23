@@ -8,12 +8,10 @@ export CUPS_DIR=$PWD/cups
 if [[ "$TARGET_JDK" == "arm" ]]
 then
   export CFLAGS+=" -D__thumb__"
-  export buildjdk_ld="$TOOLCHAIN/bin/ld"
 else
   if [[ "$TARGET_JDK" == "x86" ]]; then
      export CFLAGS+=" -mstackrealign"
   fi
-  export buildjdk_ld="$thecxx"
 fi
 
 if [[ "$TARGET_JDK" == "aarch64" ]]
@@ -37,7 +35,7 @@ platform_args="--with-toolchain-type=clang \
   BUILD_AS="$AS" \
   OBJCOPY=${OBJCOPY} \
   CXXFILT=${CXXFILT} \
-  LD=$buildjdk_ld \
+  LD=$TOOLCHAIN/bin/ld \
   READELF=$TOOLCHAIN/bin/llvm-readelf \
   "
 
