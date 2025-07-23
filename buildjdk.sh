@@ -39,11 +39,6 @@ platform_args="--with-toolchain-type=clang \
   READELF=$TOOLCHAIN/bin/llvm-readelf \
   "
 
-if [[ "$TARGET_JDK" == "x86" ]]; then
-    platform_args+="--build=x86_64-unknown-linux-gnu \
-    "
-fi
-
 AUTOCONF_x11arg="--x-includes=$ANDROID_INCLUDE/X11"
 AUTOCONF_EXTRA_ARGS+="OBJCOPY=$OBJCOPY \
   AR=$AR \
