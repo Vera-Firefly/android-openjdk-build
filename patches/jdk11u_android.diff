@@ -2409,7 +2409,7 @@ diff --git a/src/jdk.jdwp.agent/share/native/libjdwp/utf_util.c b/src/jdk.jdwp.a
 index 3fb38893e7d..20ac7b27096 100644
 --- a/src/jdk.jdwp.agent/share/native/libjdwp/utf_util.c
 +++ b/src/jdk.jdwp.agent/share/native/libjdwp/utf_util.c
-@@ -483,7 +483,11 @@ static int iconvConvert(conv_direction drn, char *bytes, size_t len, char *outpu
+@@ -483,5 +483,9 @@ static int iconvConvert(conv_direction drn, char *bytes, size_t len, char *outpu
          // locale is not initialized, do it now
          if (setlocale(LC_ALL, "") != NULL) {
              // nl_langinfo returns ANSI_X3.4-1968 by default
@@ -2419,5 +2419,3 @@ index 3fb38893e7d..20ac7b27096 100644
 +            codeset = "ASCII";
 +#endif
          }
- 
-         if (codeset == NULL) {
