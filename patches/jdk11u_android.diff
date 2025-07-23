@@ -271,6 +271,15 @@ index 7a0f2ab4b70..8dc7d932460 100644
      # Performance measurements show that by compiling GC related code, we could
      # significantly reduce the GC pause time on 32 bit Linux/Unix platforms by
      # compiling without the PIC flag (-fPIC on linux).
+diff --git a/make/hotspot/symbols/symbols-linux b/make/hotspot/symbols/symbols-linux
+index bbb0d35115f..b0d802f1773 100644
+--- a/make/hotspot/symbols/symbols-linux
++++ b/make/hotspot/symbols/symbols-linux
+@@ -25,4 +25,3 @@ JVM_handle_linux_signal
+ JVM_IsUseContainerSupport
+ numa_error
+ numa_warn
+-sysThreadAvailableStackWithSlack
 diff --git a/make/lib/Awt2dLibraries.gmk b/make/lib/Awt2dLibraries.gmk
 index bd63c6f3cd8..3dd2a3795c4 100644
 --- a/make/lib/Awt2dLibraries.gmk
@@ -1810,7 +1819,7 @@ index 5036465d46d..234e5b47a97 100644
              while ((line = in.readLine()) != null) {
                  int maxvalues = maxperkeyword;
 diff --git a/src/java.base/unix/native/libjava/ProcessImpl_md.c b/src/java.base/unix/native/libjava/ProcessImpl_md.c
-index 1ea633c6b0b..3a912809977 100644
+index 1ea633c6b0b..fc85858e9f1 100644
 --- a/src/java.base/unix/native/libjava/ProcessImpl_md.c
 +++ b/src/java.base/unix/native/libjava/ProcessImpl_md.c
 @@ -249,11 +249,13 @@ throwIOException(JNIEnv *env, int errnum, const char *defaultDetail)
@@ -1823,9 +1832,9 @@ index 1ea633c6b0b..3a912809977 100644
 -            detail = tmpbuf;
 +    if (errnum != EINVAL) {
 +        getErrorString(errnum, tmpbuf, sizeof(tmpbuf));
-+        errorDetail = tmpbuf;
++        detail = tmpbuf;
 +    } else {
-+        errorDetail = "none";
++        detail = "none";
      }
 +
      /* ASCII Decimal representation uses 2.4 times as many bits as binary. */
