@@ -2178,7 +2178,7 @@ index 160f9197522..ea27e09531b 100644
              }
          }
      }
-+#if defined(__ANDROID__) //Since both __ANDROID__ and __linux__ are defined, we must let the preprocessor preprocess the __ANDRIOD__ part first
++#elif defined(__ANDROID__) //Since both __ANDROID__ and __linux__ are defined, we must let the preprocessor preprocess the __ANDRIOD__ part first
 +    char *__java_home = getenv("JAVA_HOME");
 +    // From http://hg.openjdk.java.net/mobile/jdk9/jdk/file/17bb8a98d5e3/src/java.base/unix/native/libjli/java_md_solinux.c#l844
 +        /* For Android, 'self' would point to /system/bin/app_process
